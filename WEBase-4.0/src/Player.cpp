@@ -45,6 +45,7 @@
 #include "CommunicateSystem.h"
 #include "TimeTest.h"
 #include "Dasher.h"
+#include "RaoBlackWellParticleFilter.h"
 
 Player::Player():
 	mpDecisionTree( new DecisionTree )

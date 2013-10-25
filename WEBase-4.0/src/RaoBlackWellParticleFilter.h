@@ -53,8 +53,8 @@ public:
 
 private:
 	Agent & mAgent;
-	int numRobotLocationSamples = 50;
-	int numBallLocationSamples = 20;
+	int numRobotLocationSamples;
+	int numBallLocationSamples;
 	std::list<RobotLocationEstimate> RobotEstimateSet;
 	std::list<BallEstimate> BallEstimateSet;
 	void initRobotAndBallEstimates();

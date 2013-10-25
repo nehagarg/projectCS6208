@@ -10,6 +10,8 @@
 RaoBlackWellParticleFilter::RaoBlackWellParticleFilter(Agent & agent):
 	mAgent ( agent )
 {
+	this->numRobotLocationSamples = 50;
+	this->numRobotLocationSamples = 20;
 	initRobotAndBallEstimates();
 }
 
