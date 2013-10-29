@@ -51,6 +51,11 @@ bool DecisionTree::Decision(Agent & agent)
 		agent.SetActiveBehaviorInAct(beh.GetType());
 		Assert(&beh.GetAgent() == &agent);
 		std::cout<< "Executing behaviour " << beh.GetType() << "and " << beh.mDetailType <<  std::endl;
+		if(beh.GetType() == BT_Shoot)
+		{
+			agent.Say("9");
+			agent.Self().SetIsAlive(false);
+		}
 		return beh.Execute();
 	}
 	else

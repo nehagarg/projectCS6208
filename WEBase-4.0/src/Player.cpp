@@ -117,23 +117,26 @@ void Player::Run()
 
 	if(mpAgent->World().GetPlayMode() == PM_Play_On){
 		mpDecisionTree->Decision(*mpAgent);
-		numRuns++;
-		if(numRuns % 5 == 0)
-		{
-			VisualSystem::instance().MyDecision(*mpObserver);
-			//CommunicateSystem::instance().SendTeammateStatus(*mpAgent->World(), mpAgent->GetSelf().GetUnum(), 0);
+		if(mpAgent->Self().IsAlive()){
+
+			if(numRuns % 5 == 0)
+			{
+				VisualSystem::instance().MyDecision(*mpObserver);
+				//CommunicateSystem::instance().SendTeammateStatus(*mpAgent->World(), mpAgent->GetSelf().GetUnum(), 0);
+			}
+			//VisualSystem::instance().Decision();
+			//CommunicateSystem::instance().Decision();
+
+			mpAgent->SetHistoryActiveBehaviors();
+			numRuns++;
+			Logger::instance().LogSight();
 		}
-		//VisualSystem::instance().Decision();
-		//CommunicateSystem::instance().Decision();
-
-		mpAgent->SetHistoryActiveBehaviors();
-
-		Logger::instance().LogSight();
 	}
 	else
 	{
 		std::ostringstream ss;
 				ss << mpAgent->GetSelf().GetUnum();
 				mpAgent->Say(ss.str());
+				numRuns = 0;
 	}
 }

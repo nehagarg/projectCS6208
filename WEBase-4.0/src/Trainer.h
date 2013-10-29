@@ -124,6 +124,9 @@ public:
 	void Run();
 	void SendOptionToServer();
 	int GetLastStopTime() { return mLastStopTime;}
+	Vector LimitToField(Vector pos);
+	double CalculateRewardFromGoal(Vector pos);
+	void ReinitializeTrainer();
 
 private:
 	void DoDecisionMaking();
@@ -133,6 +136,7 @@ private:
 	void Parse(const std::string & section, const std::vector<std::string> & content);
 	void ParseCondition(const std::string & content);
 	void Record();
+	void RecordLSPI();
 	void ReadConverseConf(const std::string & str); //场景对调，这个可以试试看能不能找到一些新方法
 	void AddCondition(Trainer::Condition * superCondition, const char * name, const char * buffer);
 	void InitializeStadium();
@@ -163,6 +167,8 @@ private:
 
 private:
 	bool mInitialized;
+	bool mSetup;
+	bool mStopped;
 	bool mPrepared;
 	bool mHaveRcg;
 	bool mConverse;

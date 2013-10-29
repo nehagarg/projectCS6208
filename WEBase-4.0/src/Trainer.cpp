@@ -62,6 +62,8 @@ Trainer::Trainer()
 	mTrainTime = 0;
 	mTrainCount = 0;
 	mInitialized = false;
+	mSetup = false;
+	mStopped = false;
 	mConverse = false;
 	mPrepared = false;
 	mHaveRcg = 0;
@@ -100,8 +102,7 @@ void Trainer::SendOptionToServer()
 	}
 }
 
-void Trainer::Run()
-{
+void Trainer::Run() {
 	//TIMETEST("coach_run");
 
 	mpObserver->Lock();
@@ -113,59 +114,126 @@ void Trainer::Run()
 	mpObserver->UnLock();
 	int playerNum = -1;
 	//DoDecisionMaking();
-	if(!mInitialized)
-	{
+	if (!mInitialized) {
 		int type = mpObserver->Audio().GetHearInfoType();
-		int cmp = type &  AudioObserver::HearInfo_Action;
-		if (cmp != 0)
-		{
+		int cmp = type & AudioObserver::HearInfo_Action;
+		if (cmp != 0) {
 			//Just a hack to get player num using action type
 			//Ideally a sepaprate message type should be broadcast for playernum
 			playerNum = mpObserver->Audio().GetActionType();
 			//std::cout << "Received action type " << mpObserver->Audio().GetActionType() << std::endl;
 		}
-		if(playerNum != -1 )
-		{
-		Vector* p = new Vector(0, 0);
-		Vector* v = new Vector(0, 0);
-		MoveBall(*p, *v);
-		//CommunicateSystem::instance().SendBallStatus(mpAgent->World().Ball());
-		//v->SetY(1);
-		//MoveBall(*p, *v);
-		Vector* pp = new Vector(0, 10);
-		Vector* pv = new Vector(0, 0);
-		MovePlayer(playerNum, *pp, *pv, 0);
-		mpAgent->ChangePlayMode(SPM_PlayOn);
-		mInitialized = true;
-		}
-	}
-	else
-	{
-		int type = mpObserver->Audio().GetHearInfoType();
-		int cmp = type &  AudioObserver::HearInfo_Action;
-		if (cmp != 0)
-		{
-			//TODO : log the sars' here
-			//std::cout << "Received action type " << mpObserver->Audio().GetActionType() << std::endl;
-		}
+		if (playerNum != -1) {
+			Vector* p = new Vector(0, 0);
+			Vector* v = new Vector(0, 0);
+			MoveBall(*p, *v);
+			//CommunicateSystem::instance().SendBallStatus(mpAgent->World().Ball());
+			//v->SetY(1);
+			//MoveBall(*p, *v);
+			Vector* pp = new Vector(0, 10);
+			Vector* pv = new Vector(0, 0);
+			MovePlayer(playerNum, *pp, *pv, 0);
 
+			mInitialized = true;
+		}
+	} else {
+		if (mInitialized & !mSetup) {
+			mpAgent->ChangePlayMode(SPM_PlayOn);
+			mSetup = true;
+		} else {
+			int type = mpObserver->Audio().GetHearInfoType();
+			int cmp = type & AudioObserver::HearInfo_Action;
+			if (cmp != 0) {
+
+				if (mpObserver->Audio().GetActionType() == 9) {
+					mStopped = true;
+					//mpAgent->ChangePlayMode(SPM_BeforeKickOff);
+				}
+				else if(mpAgent->World().Ball().GetPosConf() < 0.2){
+					//TODO print reward of -4 in reward structure
+					ReinitializeTrainer();
+				}
+				//RecordLSPI();
+				//std::cout << "Received action type " << mpObserver->Audio().GetActionType() << std::endl;
+			}
+
+			if (mStopped) {
+				Vector actualPos = mpObserver->Ball_Coach().GetPos();
+				Vector pos = LimitToField(actualPos);
+				if (pos != actualPos
+						|| mpObserver->Ball_Coach().GetVel().Mod() == 0) {
+					double reward = CalculateRewardFromGoal(pos);
+					std::cout << "Reward = " << reward << std::endl;
+					ReinitializeTrainer();
+
+				}
+			}
+		}
 
 		//mpAgent->World().GetPlayer(playerNum).
 		//mpAgent->World().Ball().GetPos();
 
-
 		/*mTrainCount++;
-		if (mTrainCount % 20 == 0)
-		{
-		Vector* pp = new Vector(mTrainCount % 57, (10+mTrainCount) % 57);
-		Vector* pv = new Vector(0, 0);
-		MovePlayer(playerNum, *pp, *pv, 0);
-		}*/
+		 if (mTrainCount % 20 == 0)
+		 {
+		 Vector* pp = new Vector(mTrainCount % 57, (10+mTrainCount) % 57);
+		 Vector* pv = new Vector(0, 0);
+		 MovePlayer(playerNum, *pp, *pv, 0);
+		 }*/
 		//mpAgent->ChangePlayMode(SPM_Pause);
 	}
 	CommunicateSystem::instance().Update();
 	Logger::instance().LogSight();
 }
+void Trainer::ReinitializeTrainer(){
+	mpAgent->ChangePlayMode(SPM_BeforeKickOff);
+	mStopped = false;
+
+	mInitialized = false;
+	mSetup = false;
+
+}
+double Trainer::CalculateRewardFromGoal(Vector pos) {
+	if (pos.Y() > mpObserver->Marker(Flag_GRT).GlobalPosition().Y()
+			&& pos.Y() < mpObserver->Marker(Flag_GRB).GlobalPosition().Y()) {
+		return 4.0;
+	} else {
+		double dist1 = pos.Dist(mpObserver->Marker(Goal_L).GlobalPosition());
+		double dist2 = pos.Dist(mpObserver->Marker(Goal_R).GlobalPosition());
+		if (dist2 < dist1) {
+			dist1 = dist2;
+		}
+		double maxDistance = ServerParam::instance().PITCH_LENGTH / 2.0;
+		double minDistance = mpObserver->Marker(Goal_L).GlobalPosition().Dist(
+				mpObserver->Marker(Flag_GRT).GlobalPosition());
+		if (dist1 > maxDistance) {
+			return 0.1;
+		}
+		if (dist1 < minDistance) {
+			return 1.5;
+		}
+		return ((dist1 - minDistance) * 1.5) / (maxDistance - minDistance);
+
+	}
+}
+
+Vector Trainer::LimitToField(Vector pos) {
+	if (pos.X() > ServerParam::instance().PITCH_LENGTH / 2) {
+		pos.SetX(ServerParam::instance().PITCH_LENGTH / 2);
+	} else if (pos.X() < -ServerParam::instance().PITCH_LENGTH / 2) {
+		pos.SetX(-ServerParam::instance().PITCH_LENGTH / 2);
+	}
+
+	if (pos.Y() > ServerParam::instance().PITCH_WIDTH / 2) {
+		pos.SetY(ServerParam::instance().PITCH_WIDTH / 2);
+	} else if (pos.Y() < -ServerParam::instance().PITCH_WIDTH / 2) {
+		pos.SetY(-ServerParam::instance().PITCH_WIDTH / 2);
+	}
+
+	return pos;
+}
+
+
 
 void Trainer::DoDecisionMaking()
 {
@@ -1035,6 +1103,20 @@ void Trainer::Record()
 	os << "Total Train Count:" << mTrainCount << endl;
 	mpEndCondition->Report(os);
 	os.close();
+}
+
+void Trainer::RecordLSPI()
+{
+	//记录统计信息
+	/*ofstream os;
+	os.open("./train/train.report");
+	if(mConverse)
+		os << "Converse Train!!" << endl;
+	os << "Total Train Count:" << mTrainCount << endl;
+	mpEndCondition->Report(os);
+	os.close();*/
+
+	//TODO
 }
 
 bool Trainer::CheckOpponent() const
