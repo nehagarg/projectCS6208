@@ -48,7 +48,8 @@
 #include "RaoBlackWellParticleFilter.h"
 
 Player::Player():
-	mpDecisionTree( new DecisionTree )
+	mpDecisionTree( new DecisionTree ),
+	mpRaoBlackWellParticleFilter (new RaoBlackWellParticleFilter)
 {
 }
 
@@ -110,14 +111,16 @@ void Player::Run()
 	last_time = time;
 
 	Formation::instance.UpdateOpponentRole(); //TODO: 暂时放在这里，教练未发来对手阵型信息时自己先计算
-
+	mpRaoBlackWellParticleFilter->getNewRobotLocationEstimate(*mpAgent);
 	VisualSystem::instance().ResetVisualRequest();
 	mpDecisionTree->Decision(*mpAgent);
 
+	VisualSystem::instance().MyDecision(*mpObserver);
 	//VisualSystem::instance().Decision();
-	CommunicateSystem::instance().Decision();
+	//CommunicateSystem::instance().Decision();
 
     mpAgent->SetHistoryActiveBehaviors();
 
 	Logger::instance().LogSight();
+
 }

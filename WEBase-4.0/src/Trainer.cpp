@@ -111,9 +111,33 @@ void Trainer::Run()
 	mpWorldModel->Update(mpObserver);
 
 	mpObserver->UnLock();
-
-	DoDecisionMaking();
-
+	int playerNum = 9;
+	//DoDecisionMaking();
+	if(!mInitialized)
+	{
+		Vector* p = new Vector(0, 0);
+		Vector* v = new Vector(0, 0);
+		MoveBall(*p, *v);
+		//CommunicateSystem::instance().SendBallStatus(mpAgent->World().Ball());
+		//v->SetY(1);
+		MoveBall(*p, *v);
+		Vector* pp = new Vector(0, 10);
+		Vector* pv = new Vector(0, 0);
+		MovePlayer(playerNum, *pp, *pv, 0);
+		mpAgent->ChangePlayMode(SPM_PlayOn);
+		mInitialized = true;
+	}
+	else
+	{
+		/*mTrainCount++;
+		if (mTrainCount % 20 == 0)
+		{
+		Vector* pp = new Vector(mTrainCount % 57, (10+mTrainCount) % 57);
+		Vector* pv = new Vector(0, 0);
+		MovePlayer(playerNum, *pp, *pv, 0);
+		}*/
+		//mpAgent->ChangePlayMode(SPM_Pause);
+	}
 	Logger::instance().LogSight();
 }
 
@@ -230,7 +254,7 @@ void Trainer::ChangePlayMode(PlayMode pm)
 	case PM_Before_Kick_Off:
 		spm = SPM_BeforeKickOff;
 		break;
-		//    	case PM_Penalty_On_Our_Field:
+		//    	case PM_Penalty_On_Our_Field:TRAINER_UNUM
 		//    	case PM_Our_Penalty:
 		//    	case PM_Opp_Penalty:
 		//    	case PM_Penalty_On_Opp_Field:

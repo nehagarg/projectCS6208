@@ -1485,6 +1485,7 @@ void Parser::ParseCard(char *msg)
 
 void Parser::ParseSight_Coach(char *msg)
 {
+	//std::cout << "Got message from coach" << msg << std::endl ;
 	if (PlayerParam::instance().isCoach() || PlayerParam::instance().isTrainer())
 	{
 		TimeTest::instance().Update(mpObserver->CurrentTime()); // coach每周期都有sight

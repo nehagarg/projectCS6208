@@ -108,8 +108,40 @@ void VisualSystem::ResetVisualRequest()
 	ViewModeDecision();
 }
 
-void VisualSystem::Decision()
+void VisualSystem::MyDecision(Observer &observer)
 {
+	//AngleDeg selfPosAngle = mpAgent->GetSelf().GetPos().Dir();
+	AngleDeg selfAngle = mpAgent->GetSelf().GetNeckDir();
+	std::cout << "Self angle value : " << selfAngle << std::endl;
+	AngleDeg target;
+	int i = 2; //std::rand() % 9 ;
+	if (i == 2) //look at ball
+	{
+		target = (mpAgent->World().Ball().GetPos() - mpAgent->GetSelf().GetPos()).Dir();
+
+	}
+	else  //look at marker
+	{
+		target = (observer.Marker((MarkerType)i).GlobalPosition()- mpAgent->GetSelf().GetPos()).Dir();
+	}
+	std::cout << "Turning neck to " << target << "from " << selfAngle << "to look at" << i <<  std::endl;
+	/*if ((target - selfAngle)  > 180)
+	{
+		mpAgent->TurnNeck(target  - selfAngle - 360);
+	}
+	else if ((target - selfAngle)  < - 180)
+	{
+		mpAgent->TurnNeck(target  - selfAngle + 360);
+	}
+	else
+	{*/
+		mpAgent->TurnNeck(target  - selfAngle - mPreBodyDir);
+	//}
+	//selfAngle = mpAgent->GetSelf().GetNeckGlobalDir();
+
+}
+
+void VisualSystem::Decision(){
 	if (mpAgent->GetActionEffector().IsTurnNeck()) return; //其他地方已经产生了转脖子动作
 	if (mForbidden) return;
 

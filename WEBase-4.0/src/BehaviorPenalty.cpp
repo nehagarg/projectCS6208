@@ -133,6 +133,7 @@ BehaviorPenaltyPlanner::~BehaviorPenaltyPlanner()
 //==============================================================================
 void BehaviorPenaltyPlanner::Plan(std::list<ActiveBehavior> &behaviorlist)
 {
+	std::cout << "Inside Behaviour Penalty \n";
 	ActiveBehavior penaltyKO(mAgent, BT_Penalty);
 
     if (mSelfState.IsGoalie())

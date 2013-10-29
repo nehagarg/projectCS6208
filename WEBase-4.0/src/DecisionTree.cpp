@@ -50,11 +50,59 @@ bool DecisionTree::Decision(Agent & agent)
 	if (beh.GetType() != BT_None) {
 		agent.SetActiveBehaviorInAct(beh.GetType());
 		Assert(&beh.GetAgent() == &agent);
+		std::cout<< "Executing behaviour " << beh.GetType() << "and " << beh.mDetailType <<  std::endl;
 		return beh.Execute();
+	}
+	else
+	{
+		if(agent.World().GetPlayMode() == PM_Play_On)
+		{
+			if (agent.GetSelf().IsKickable())
+			{
+				std::cout << "is kickable" << std::endl;
+			}
+			else
+			{
+				std::cout << "cannot kick" << std::endl;
+			}
+			return Dasher::instance().GetBall(agent);
+		}
 	}
 	return false;
 }
+ActiveBehavior DecisionTree::MySearch(Agent & agent, int step)
+{
+	if (step == 1) {
+		if (agent.GetSelf().IsIdling()) {
+			return ActiveBehavior(agent, BT_None);
+		}
 
+		std::list<ActiveBehavior> active_behavior_list;
+
+		if (agent.GetSelf().IsGoalie()) {
+			MutexPlan<BehaviorPenaltyPlanner>(agent, active_behavior_list) ||
+			MutexPlan<BehaviorSetplayPlanner>(agent, active_behavior_list) ||
+			MutexPlan<BehaviorAttackPlanner>(agent, active_behavior_list) ||
+			MutexPlan<BehaviorGoaliePlanner>(agent, active_behavior_list);
+		}
+		else {
+			//MutexPlan<BehaviorPenaltyPlanner>(agent, active_behavior_list) ||
+			//MutexPlan<BehaviorSetplayPlanner>(agent, active_behavior_list) ||
+			MutexPlan<BehaviorAttackPlanner>(agent, active_behavior_list); // ||
+			//MutexPlan<BehaviorDefensePlanner>(agent, active_behavior_list);
+		}
+
+		if (!active_behavior_list.empty()){
+			return GetBestActiveBehavior(agent, active_behavior_list);
+		}
+		else {
+			return ActiveBehavior(agent, BT_None);
+		}
+	}
+	else {
+		return ActiveBehavior(agent, BT_None);
+	}
+}
 ActiveBehavior DecisionTree::Search(Agent & agent, int step)
 {
 	if (step == 1) {
@@ -71,10 +119,10 @@ ActiveBehavior DecisionTree::Search(Agent & agent, int step)
 			MutexPlan<BehaviorGoaliePlanner>(agent, active_behavior_list);
 		}
 		else {
-			MutexPlan<BehaviorPenaltyPlanner>(agent, active_behavior_list) ||
-			MutexPlan<BehaviorSetplayPlanner>(agent, active_behavior_list) ||
-			MutexPlan<BehaviorAttackPlanner>(agent, active_behavior_list) ||
-			MutexPlan<BehaviorDefensePlanner>(agent, active_behavior_list);
+			//MutexPlan<BehaviorPenaltyPlanner>(agent, active_behavior_list) ||
+			//MutexPlan<BehaviorSetplayPlanner>(agent, active_behavior_list) ||
+			MutexPlan<BehaviorAttackPlanner>(agent, active_behavior_list) ; //||
+			//MutexPlan<BehaviorDefensePlanner>(agent, active_behavior_list);
 		}
 
 		if (!active_behavior_list.empty()){

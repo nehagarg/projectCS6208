@@ -34,13 +34,16 @@
 #define __Player_H__
 
 #include "Client.h"
+#include "RaoBlackWellParticleFilter.h"
 
 class DecisionTree;
 class  BeliefState;
+class RaoBlackWellParticleFilter;
 
 class Player: public Client
 {
 	DecisionTree *mpDecisionTree;
+	RaoBlackWellParticleFilter *mpRaoBlackWellParticleFilter;
 
 public:
     /**

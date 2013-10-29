@@ -52,14 +52,15 @@ void BehaviorAttackPlanner::Plan(std::list<ActiveBehavior> & behavior_list)
 {
 	if (mSelfState.IsBallCatchable()  && mStrategy.IsLastOppControl() &&(!(mAgent.IsLastActiveBehaviorInActOf(BT_Pass)||mAgent.IsLastActiveBehaviorInActOf(BT_Dribble)))) return;
 
-	BehaviorInterceptPlanner(mAgent).Plan(mActiveBehaviorList);
+	//BehaviorInterceptPlanner(mAgent).Plan(mActiveBehaviorList);
 	BehaviorShootPlanner(mAgent).Plan(mActiveBehaviorList);
 	BehaviorPassPlanner(mAgent).Plan(mActiveBehaviorList);
 	BehaviorDribblePlanner(mAgent).Plan(mActiveBehaviorList);
-	BehaviorPositionPlanner(mAgent).Plan(mActiveBehaviorList);
+	//BehaviorPositionPlanner(mAgent).Plan(mActiveBehaviorList);
 	BehaviorHoldPlanner(mAgent).Plan(mActiveBehaviorList);
 
 	if (!mActiveBehaviorList.empty()) {
+		//std::cout << "Behavior list not empty" << std::endl;
 		mActiveBehaviorList.sort(std::greater<ActiveBehavior>());
 		behavior_list.push_back(mActiveBehaviorList.front());
 

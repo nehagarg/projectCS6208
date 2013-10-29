@@ -69,9 +69,9 @@ bool BehaviorSetplayExecuter::Execute(const ActiveBehavior &setplay)
 			return mAgent.Move(setplay.mTarget);
 		}
 		else if (setplay.mDetailType == BDT_Setplay_Scan) {
-			VisualSystem::instance().ForbidDecision(mAgent);
-			return mAgent.Turn(50.0);
-			//return true;
+			//VisualSystem::instance().ForbidDecision(mAgent);
+			//return mAgent.Turn(50.0);
+			return true;
 		}
 		else {
 			PRINT_ERROR("Setplay Detail Type Error");
@@ -106,6 +106,7 @@ BehaviorSetplayPlanner::~BehaviorSetplayPlanner(void)
 
 void BehaviorSetplayPlanner::Plan(std::list<ActiveBehavior> & behavior_list)
 {
+	std::cout << "Inside Behaviour Setplay\n";
 	ActiveBehavior setplay(mAgent, BT_Setplay);
 
 	setplay.mBuffer = 0.5;

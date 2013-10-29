@@ -57,7 +57,7 @@ private:
 	* @return
 	*/
 	ActiveBehavior Search(Agent & agent, int step);
-
+	ActiveBehavior MySearch(Agent & agent, int step);
 	ActiveBehavior GetBestActiveBehavior(Agent & agent, std::list<ActiveBehavior> & behavior_list);
 
 	template <typename BehaviorDerived>

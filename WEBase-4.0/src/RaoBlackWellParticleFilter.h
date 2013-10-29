@@ -6,7 +6,7 @@
 struct RobotLocationEstimate {
 	Vector roboPos;
 	AngleDeg roboDir;
-	float weight;
+	double weight;
 };
 
 enum BallModel {
@@ -22,14 +22,14 @@ struct BallEstimate {
 	Vector ballVel;
 	BallModel m;
 	RobotLocationEstimate rho;
-	float weight;
+	double weight;
 
 };
 
 class RaoBlackWellParticleFilter {
 public:
-	RaoBlackWellParticleFilter(Agent &agent);
-	RaoBlackWellParticleFilter(Agent &agent, int N, int L);
+	RaoBlackWellParticleFilter();
+	RaoBlackWellParticleFilter( int N, int L);
 	virtual ~RaoBlackWellParticleFilter();
 
 	int getNumBallLocationSamples() const {
@@ -48,16 +48,15 @@ public:
 		this->numRobotLocationSamples = numRobotLocationSamples;
 	}
 
-	std::list<RobotLocationEstimate> getNewRobotLocationEstimate();
-	std::list<BallEstimate> getNewBallEstimate();
+	std::list<RobotLocationEstimate> getNewRobotLocationEstimate(Agent &agent);
+	std::list<BallEstimate> getNewBallEstimate(Agent &agent);
 
 private:
-	Agent & mAgent;
 	int numRobotLocationSamples;
 	int numBallLocationSamples;
 	std::list<RobotLocationEstimate> RobotEstimateSet;
 	std::list<BallEstimate> BallEstimateSet;
-	void initRobotAndBallEstimates();
+	void initRobotAndBallEstimates(Agent &agent);
 };
 
 

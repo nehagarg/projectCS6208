@@ -210,6 +210,7 @@ void Client::ConstructAgent()
 
 void Client::MainLoop()
 {
+	int stopper;
 	while (mpObserver->WaitForNewInfo()) // 等待新视觉
 	{
         NetworkTest::instance().AddDecisionBegin();
@@ -229,10 +230,15 @@ void Client::MainLoop()
 
         DynamicDebug::instance().AddMessage("\0", MT_Run); // 动态调试记录Run信息
         Run();
-
+        /*if(mpObserver->SelfUnum() != TRAINER_UNUM)
+        {
+        	std::cout << "Print stopper\n";
+        	std::cin >> stopper;
+        }*/
+        //Logger::instance().Flush(); //flush log
 		mpObserver->SetPlanned();
 		mpObserver->SetCommandSend(); //唤醒发送命令的线程
-		Logger::instance().SetFlushCond(); // set flush cond and let the logger thread flush the logs to file.
+		//Logger::instance().SetFlushCond(); // set flush cond and let the logger thread flush the logs to file.
 
         NetworkTest::instance().AddDecisionEnd(mpObserver->CurrentTime());
 	}

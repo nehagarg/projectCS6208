@@ -172,6 +172,7 @@ public:
 
 	void ResetVisualRequest();
 	void Decision();
+	void MyDecision(Observer & observer);
 
 	void RaiseBall(Agent & agent, double eva = 0.0) { if (mpAgent == & agent) { RaiseBall(eva); } }
 	void RaisePlayer(Agent & agent, Unum num, double eva = 0.0) { if (mpAgent == & agent) { RaisePlayer(num, eva); } }

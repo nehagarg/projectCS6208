@@ -255,6 +255,7 @@ void WorldStateUpdater::UpdateActionInfo()
  */
 void WorldStateUpdater::UpdateWorldState()
 {
+	//std::cout<< "Updating world state\n";
 	/**更新场上的状态*/
 	UpdateFieldInfo();
 
@@ -313,10 +314,12 @@ void WorldStateUpdater::UpdateWorldState()
 	}
 	else
 	{
+		//std::cout << "In else as player is not coach or trainer " << mpObserver->Ball_Coach().GetPosDelay() << std::endl;
 		// this procedure updates history state and there is a similar procedure in UpdateFromAudio
 		// but updates current state.
 		if (mpObserver->Ball_Coach().GetPosDelay() == 0)
 		{
+			std::cout<< "Updating history from ball coach\n";
 			WorldState & history = *mpWorldState->mpHistory->GetHistory(1);
 			history.Ball().UpdatePos(mpObserver->Ball_Coach().GetPos(), 0, 1.0);
 			history.Ball().UpdateGuessedTimes(0);
@@ -685,6 +688,7 @@ void WorldStateUpdater::UpdateSelfInfo()
 		double neck_globe_angle = 0.0;
 
 
+		/* Commented by Neha as agent does not see line markers
 		if (ComputeSelfDir(neck_globe_angle))
 		{
 			//计算公式见USTC_Material 第七章
@@ -699,7 +703,7 @@ void WorldStateUpdater::UpdateSelfInfo()
 				PRINT_ERROR("mSightDelay too big!!" << mSightDelay);
 				SelfState().UpdateBodyDir(neck_globe_angle - SelfState().GetNeckDir() , mSightDelay , mPlayerConf);
 			}
-		}
+		}*/
 
 		if (mSightDelay == 0)
 		{
@@ -713,6 +717,7 @@ void WorldStateUpdater::UpdateSelfInfo()
 		double eps = 0;
 		if (ComputeSelfPos(pos , eps))
 		{
+			std::cout << "Could see a marker\n";
 			if (eps > SelfState().GetPosEps())
 			{
 				//根据统计值,x,y单个分量差值大于1基本不存在 因此取1
@@ -733,6 +738,10 @@ void WorldStateUpdater::UpdateSelfInfo()
 
 			SelfState().UpdatePos(pos, mSightDelay, mPlayerConf);
 			SelfState().UpdatePosEps(eps);
+		}
+		else
+		{
+			std::cout << "Marker not seen\n";
 		}
 	}
 
@@ -1212,6 +1221,7 @@ void WorldStateUpdater::UpdateBallInfo()
 	//更新位置
 	//计算公式见USTC_Material 第七章
 	//公式：ballPos = playerPos + polar2vector(ballDist , neckGlobalAngle + ballAngle)
+
 	if (mpObserver->Ball().GetDist().time() == mpObserver->LatestSightTime())
 	{
 		double dist = PlayerParam::instance().ConvertSightDist(mpObserver->Ball().Dist());
@@ -1600,12 +1610,19 @@ bool WorldStateUpdater::ComputeSelfDir(double& angle)
 
 bool WorldStateUpdater::ComputeSelfPos(Vector &vec ,double& eps)
 {
+	//Added by Neha as when agent sees ball it is not supposed to see a marker
+	if (mpObserver->Ball().GetDist().time() == mpObserver->LatestSightTime())
+	{
+		return false;
+	}
 	//寻找最近的标志
 	int sample = FLAG_NONE; //最近标志的标示
 	double min = 2000.0;      //最近标志的距离 初始值应该不能比这个更小了吧！
-
-	for (int i = 0;i < FLAG_MAX;i++)
+	//return false;
+	for (int i = 0;i <= Flag_RB;i++)
 	{
+		if(i!= Flag_C)
+		{
 		if (mpObserver->Marker((MarkerType)i).GetDir().time() == mpObserver->LatestSightTime())
 		{
 			if (mpObserver->Marker((MarkerType)i).Dist() < min)
@@ -1614,6 +1631,7 @@ bool WorldStateUpdater::ComputeSelfPos(Vector &vec ,double& eps)
 				sample = i;
 			}
 		}
+		}
 	}
 
 	//没有看到的 则返回false
@@ -1621,10 +1639,13 @@ bool WorldStateUpdater::ComputeSelfPos(Vector &vec ,double& eps)
 	{
 		return false;
 	}
+	std::cout << "saw marker " << sample << "at distance " << min ;
 
 	//修正及计算eps
 	min = PlayerParam::instance().ConvertMarkDist(min);
 	eps = PlayerParam::instance().GetEpsInMark(min);
+
+	std::cout << ", " << min << std::endl ;
 
 	eps = calcEps(min , min+eps , 1);
 
@@ -2910,7 +2931,7 @@ bool WorldStateUpdater::ComputeShouldSeeOrNot(Vector pos)
 		view_angle = 180;
 		break;
 	default:
-		view_angle = 120;
+		view_angle = 60;
 		break;
 	}
 

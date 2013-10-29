@@ -42,7 +42,7 @@ bool BasicCommand::Execute(std::list<CommandInfo> &command_queue)
     {
         return false;
     }
-
+    //std::cout << "Executing basic command\n";
     ActionEffector::CMD_QUEUE_MUTEX.Lock();
     command_queue.push_back(mCommandInfo);
     ActionEffector::CMD_QUEUE_MUTEX.UnLock();

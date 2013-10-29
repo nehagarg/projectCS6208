@@ -244,6 +244,7 @@ bool ActionEffector::SetTurnNeckAction(AngleDeg angle)
 	}
 
 	mTurnNeck.Plan(angle);
+	std::cout << "Before executing neck turn\n" ;
 	mTurnNeck.Execute(mCommandQueue);
 	++mTurnNeckCount;
 	mIsTurnNeck = true;

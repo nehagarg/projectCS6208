@@ -116,8 +116,9 @@ void BehaviorShootPlanner::Plan(list<ActiveBehavior> & behavior_list)
 	{
 		return;
 	}
-
+	//std::cout << "Planning shoot";
 	if (mSelfState.GetPos().X() > ServerParam::instance().pitchRectanglar().Right() - PlayerParam::instance().shootMaxDistance()) {
+		//std::cout << "inside if" << std::endl;
 		AngleDeg left= (ServerParam::instance().oppLeftGoalPost()- mSelfState.GetPos()).Dir()  ;
 		AngleDeg right = (ServerParam::instance().oppRightGoalPost()- mSelfState.GetPos()).Dir();
 		Vector target ;
