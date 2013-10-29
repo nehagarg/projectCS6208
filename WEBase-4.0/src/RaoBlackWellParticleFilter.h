@@ -7,6 +7,7 @@ struct RobotLocationEstimate {
 	Vector roboPos;
 	AngleDeg roboDir;
 	double weight;
+	AngleDeg RobotOri2Goal;
 };
 
 enum BallModel {
@@ -49,8 +50,9 @@ public:
 	}
 
 	std::list<RobotLocationEstimate> getNewRobotLocationEstimate(Agent &agent);
+	std::list<RobotLocationEstimate> getNewRobotLocationEstimate();
 	std::list<BallEstimate> getNewBallEstimate(Agent &agent);
-
+	std::list<BallEstimate> getNewBallEstimate();
 private:
 	int numRobotLocationSamples;
 	int numBallLocationSamples;

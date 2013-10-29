@@ -127,6 +127,16 @@ public:
 	Vector LimitToField(Vector pos);
 	double CalculateRewardFromGoal(Vector pos);
 	void ReinitializeTrainer();
+	int encode_sa(int a,int b,int c, int d);
+	int getDistance(double dis);
+	int getDirectionBall(double dir);
+	int getDirectionGoal(double dir);
+
+	//int Nsa[2][3];
+	//int Nsas[3][4][5];
+	//int Nsa[216][9];
+	//int Nsas[216][9][216];
+
 
 private:
 	void DoDecisionMaking();
@@ -137,6 +147,7 @@ private:
 	void ParseCondition(const std::string & content);
 	void Record();
 	void RecordLSPI();
+	void Record_sarsop(Unum,int,int);
 	void ReadConverseConf(const std::string & str); //场景对调，这个可以试试看能不能找到一些新方法
 	void AddCondition(Trainer::Condition * superCondition, const char * name, const char * buffer);
 	void InitializeStadium();
@@ -172,6 +183,9 @@ private:
 	bool mPrepared;
 	bool mHaveRcg;
 	bool mConverse;
+	int myState_state;
+	int myState_preState;
+	int myAction_preState;
 	int mTm2Opp[12]; //解决对手和我们相同号码不同角色的问题
 	int mOpp2Tm[12]; //和上面那个刚好是倒过来的，一个用于自己变对手，一个用于
 	PlayMode mTrainPM;

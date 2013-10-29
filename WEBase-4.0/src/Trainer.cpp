@@ -48,6 +48,7 @@
 
 using namespace std;
 
+
 Trainer::PlayerState::PlayerState(Unum num, Vector pos, Vector vel, AngleDeg dir, int type)
 {
 	mUnum = num;
@@ -55,6 +56,7 @@ Trainer::PlayerState::PlayerState(Unum num, Vector pos, Vector vel, AngleDeg dir
 	mVel = vel;
 	mBodyDir = dir;
 	mPlayerType = type;
+
 }
 
 Trainer::Trainer()
@@ -67,6 +69,9 @@ Trainer::Trainer()
 	mConverse = false;
 	mPrepared = false;
 	mHaveRcg = 0;
+	myState_preState = -1;
+	myState_state = -1;
+	myAction_preState=-1;
 	mpEndCondition = new Trainer::Condition(this, ET_Null, 0, 0, 0x0, mConverse);
 	mLastStopTime = 0;
 	mpObserver->SetSelfUnum( TRAINER_UNUM );
@@ -106,7 +111,7 @@ void Trainer::Run() {
 	//TIMETEST("coach_run");
 
 	mpObserver->Lock();
-
+	static int countForPreState;
 	/** 下面几个更新顺序不能变 */
 	mpAgent->CheckCommands(mpObserver); // 检查上周期发送命令情况
 	mpWorldModel->Update(mpObserver);
@@ -135,6 +140,8 @@ void Trainer::Run() {
 			MovePlayer(playerNum, *pp, *pv, 0);
 
 			mInitialized = true;
+			countForPreState = 0;
+
 		}
 	} else {
 		if (mInitialized & !mSetup) {
@@ -144,7 +151,11 @@ void Trainer::Run() {
 			int type = mpObserver->Audio().GetHearInfoType();
 			int cmp = type & AudioObserver::HearInfo_Action;
 			if (cmp != 0) {
-
+				int action=mpObserver->Audio().GetActionType();
+				//std::cout << "Before Record sarsop " << action << std::endl;
+				Record_sarsop(playerNum,countForPreState,action);
+				//std::cout << "After Record sarsop " << action << std::endl;
+				countForPreState++;
 				if (mpObserver->Audio().GetActionType() == 9) {
 					mStopped = true;
 					//mpAgent->ChangePlayMode(SPM_BeforeKickOff);
@@ -189,13 +200,13 @@ void Trainer::ReinitializeTrainer(){
 	mpAgent->ChangePlayMode(SPM_BeforeKickOff);
 	mStopped = false;
 
-	mInitialized = false;
-	mSetup = false;
+	//mInitialized = false;
+	//mSetup = false;
 
 }
 double Trainer::CalculateRewardFromGoal(Vector pos) {
 	if (pos.Y() > mpObserver->Marker(Flag_GRT).GlobalPosition().Y()
-			&& pos.Y() < mpObserver->Marker(Flag_GRB).GlobalPosition().Y()) {
+			&& pos.Y() < mpObserver->Marker(Flag_GRB).GlobalPosition().Y() && abs(pos.X()) + 2 > abs(ServerParam::instance().PITCH_LENGTH / 2.0)) {
 		return 4.0;
 	} else {
 		double dist1 = pos.Dist(mpObserver->Marker(Goal_L).GlobalPosition());
@@ -1118,6 +1129,112 @@ void Trainer::RecordLSPI()
 
 	//TODO
 }
+
+void Trainer::Record_sarsop(Unum num,int count,int action)
+{
+	ofstream os;
+	os.open("./train/Transition1.txt", std::ofstream::app);
+	//double transition[216][9][216];
+	Vector agent_pos_current=mpObserver->Teammate_Coach(num).GetPos();
+	double xa=agent_pos_current.X();
+	double ya=agent_pos_current.Y();
+	double dir_agent=mpObserver->Teammate_Coach(num).GetBodyDir();
+	Vector ball_pos_current=mpObserver->Ball_Coach().GetPos();;
+	double xb=ball_pos_current.X();
+	double yb=ball_pos_current.Y();
+	double dir2ball=abs((ball_pos_current - agent_pos_current).Dir()-dir_agent);
+	double Dis2ball=ball_pos_current.Dist(agent_pos_current);
+	Vector goal_location=mpObserver->Marker(MarkerType(1)).GlobalPosition();// 1 is the right goal
+	double xg=goal_location.X();
+	double yg=goal_location.Y();
+	double dir2goal=abs((goal_location - agent_pos_current).Dir()-dir_agent);
+	int distance2ball=getDistance(Dis2ball);
+	int direction2ball=getDirectionBall(dir2ball);
+	int direction2goal=getDirectionGoal(dir2goal);
+	int state_num=encode_sa(distance2ball ,direction2ball,direction2goal,action);
+
+	std::cout << "After discretizing" << state_num <<  std::endl;
+	if (count==0)//first action is taken
+	{
+		myState_state=state_num;
+		myState_preState=-1;//no previous state
+		myAction_preState=action;
+		os<<state_num << " ";
+		os<<action << " ";
+	}
+	else
+	{
+		//update transition
+		myState_preState=myState_state;
+		myState_state=state_num;
+		os<<myState_preState<<endl;
+		os<<myState_preState << " ";
+		os<<myAction_preState << " " ;
+		myAction_preState=action;
+		//Nsas[myState_preState][action][myState_state]++;
+	}
+
+//	for (int i=0;i<216;i++)
+//		for (int j=0;j<9;j++)
+//			for (int k=0;k<216;k++)
+//			{
+//				if (Nsa[i][j] == 0)
+//					transition[i][j][k]=-1;
+//				else
+//					transition[i][j][k]=Nsas[i][j][k]/Nsa[i][j];
+
+			//	os<<transition[i][j][k]<<endl;
+			//}
+	std::cout << "Finished writing file \n";
+	os.close();
+
+}
+int Trainer::encode_sa(int a,int b,int c, int d)
+{
+	//cout << "Input to encode sa " << a << " "   << b << " " << c << "\n";
+	int num=(a-1)*36+(b)*6+c;
+	//Nsa[num][d]++;for (int i=0;i<216;i++)
+	//		for (int j=0;j<9;j++)
+	//			for (int k=0;k<216;k++)
+	//			{
+	//				if (Nsa[i][j] == 0)
+	//					transition[i][j][k]=-1;
+	//				else
+	//					transition[i][j][k]=Nsas[i][j][k]/Nsa[i][j];
+	return num;
+}
+
+int Trainer::getDistance(double dis)
+{
+	//<=20: 1; 20<x<=30: 2; 30<x<=40: 3; 40<x<=50: 4; 50<x<=60: 5; >60: 6
+
+	if (dis<=10)
+		return 1;
+	else if (dis<=20)
+		return 2;
+	else if (dis<=30)
+		return 3;
+	else if (dis<=40)
+		return 4;
+	else if (dis<=50)
+		return 5;
+	else
+		return 6;
+}
+
+int Trainer::getDirectionBall(double dir)
+{
+	dir = abs(dir -1);
+	//discretize into 6 regions
+	return int(floor(dir/30.0));
+}
+
+int Trainer::getDirectionGoal(double dir)
+{
+	dir = abs(dir -1);
+	return int(floor(dir/30.0));
+}
+
 
 bool Trainer::CheckOpponent() const
 {
