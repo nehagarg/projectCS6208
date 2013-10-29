@@ -413,7 +413,7 @@ void WorldStateUpdater::UpdateWorldState()
 		UpdateInfoFromPlayMode();
 
 		//重新评估各球员的置信度 及置球员的生死
-		EvaluateConf();
+		//EvaluateConf(); //Commented by Neha
 
 		//更新Action的信息
 		UpdateActionInfo();

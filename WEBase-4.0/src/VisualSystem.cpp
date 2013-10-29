@@ -135,6 +135,9 @@ void VisualSystem::MyDecision(Observer &observer)
 	}
 	else
 	{*/
+		std::ostringstream ss;
+		ss << i;
+		mpAgent->Say(ss.str());
 		mpAgent->TurnNeck(target  - selfAngle - mPreBodyDir);
 	//}
 	//selfAngle = mpAgent->GetSelf().GetNeckGlobalDir();

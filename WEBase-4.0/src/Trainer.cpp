@@ -111,24 +111,49 @@ void Trainer::Run()
 	mpWorldModel->Update(mpObserver);
 
 	mpObserver->UnLock();
-	int playerNum = 9;
+	int playerNum = -1;
 	//DoDecisionMaking();
 	if(!mInitialized)
 	{
+		int type = mpObserver->Audio().GetHearInfoType();
+		int cmp = type &  AudioObserver::HearInfo_Action;
+		if (cmp != 0)
+		{
+			//Just a hack to get player num using action type
+			//Ideally a sepaprate message type should be broadcast for playernum
+			playerNum = mpObserver->Audio().GetActionType();
+			//std::cout << "Received action type " << mpObserver->Audio().GetActionType() << std::endl;
+		}
+		if(playerNum != -1 )
+		{
 		Vector* p = new Vector(0, 0);
 		Vector* v = new Vector(0, 0);
 		MoveBall(*p, *v);
 		//CommunicateSystem::instance().SendBallStatus(mpAgent->World().Ball());
 		//v->SetY(1);
-		MoveBall(*p, *v);
+		//MoveBall(*p, *v);
 		Vector* pp = new Vector(0, 10);
 		Vector* pv = new Vector(0, 0);
 		MovePlayer(playerNum, *pp, *pv, 0);
 		mpAgent->ChangePlayMode(SPM_PlayOn);
 		mInitialized = true;
+		}
 	}
 	else
 	{
+		int type = mpObserver->Audio().GetHearInfoType();
+		int cmp = type &  AudioObserver::HearInfo_Action;
+		if (cmp != 0)
+		{
+			//TODO : log the sars' here
+			//std::cout << "Received action type " << mpObserver->Audio().GetActionType() << std::endl;
+		}
+
+
+		//mpAgent->World().GetPlayer(playerNum).
+		//mpAgent->World().Ball().GetPos();
+
+
 		/*mTrainCount++;
 		if (mTrainCount % 20 == 0)
 		{
@@ -138,6 +163,7 @@ void Trainer::Run()
 		}*/
 		//mpAgent->ChangePlayMode(SPM_Pause);
 	}
+	CommunicateSystem::instance().Update();
 	Logger::instance().LogSight();
 }
 

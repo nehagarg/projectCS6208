@@ -51,6 +51,7 @@ Player::Player():
 	mpDecisionTree( new DecisionTree ),
 	mpRaoBlackWellParticleFilter (new RaoBlackWellParticleFilter)
 {
+	numRuns = 0;
 }
 
 Player::~Player()
@@ -113,14 +114,26 @@ void Player::Run()
 	Formation::instance.UpdateOpponentRole(); //TODO: 暂时放在这里，教练未发来对手阵型信息时自己先计算
 	mpRaoBlackWellParticleFilter->getNewRobotLocationEstimate(*mpAgent);
 	VisualSystem::instance().ResetVisualRequest();
-	mpDecisionTree->Decision(*mpAgent);
 
-	VisualSystem::instance().MyDecision(*mpObserver);
-	//VisualSystem::instance().Decision();
-	//CommunicateSystem::instance().Decision();
+	if(mpAgent->World().GetPlayMode() == PM_Play_On){
+		mpDecisionTree->Decision(*mpAgent);
+		numRuns++;
+		if(numRuns % 5 == 0)
+		{
+			VisualSystem::instance().MyDecision(*mpObserver);
+			//CommunicateSystem::instance().SendTeammateStatus(*mpAgent->World(), mpAgent->GetSelf().GetUnum(), 0);
+		}
+		//VisualSystem::instance().Decision();
+		//CommunicateSystem::instance().Decision();
 
-    mpAgent->SetHistoryActiveBehaviors();
+		mpAgent->SetHistoryActiveBehaviors();
 
-	Logger::instance().LogSight();
-
+		Logger::instance().LogSight();
+	}
+	else
+	{
+		std::ostringstream ss;
+				ss << mpAgent->GetSelf().GetUnum();
+				mpAgent->Say(ss.str());
+	}
 }

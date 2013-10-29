@@ -388,6 +388,8 @@ bool CommunicateSystem::SendTeammateStatus(const WorldState *pWorldState, Unum n
 	return false;
 }
 
+
+
 bool CommunicateSystem::SendOpponentStatus(const WorldState *pWorldState, Unum num, int cd)
 {
 	Assert(num > 0);
@@ -526,6 +528,11 @@ void CommunicateSystem::RecvFreeForm(DWORD64 bits)
 			 Unum num = ExtractUnumFromBits(bits, bit_left);
 			 mpObserver->HearOpponent(num, Vector(x, y));
 			 Logger::instance().GetTextLogger("freeform") << mpObserver->CurrentTime() << " hear opp: " << num << " " << Vector(x, y) << endl;
+		 }
+		 else if (type == PLAYER_ACTION){
+			 int actionNumber = ExtractDataFromBits(bits, ACTION, bit_left);
+			 mpObserver->HearAction(actionNumber);
+			 Logger::instance().GetTextLogger("freeform") << mpObserver->CurrentTime() << "action id " << actionNumber << endl;
 		 }
 		 else {
 			 PRINT_ERROR("recv free form error");

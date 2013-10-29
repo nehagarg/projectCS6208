@@ -80,6 +80,7 @@ public:
 		BALL_SPEED,
 		PLAYER_SPEED,
 		DIR,
+		ACTION,
 		CODEC_MAX
 	};
 	//CommuType排列顺序代表优先级序列	不可超过四个字节 即16种
@@ -95,6 +96,7 @@ public:
 		BALL_ONLY_POS,
 		TEAMMATE_ONLY_POS,
 		OPPONENT_ONLY_POS,
+		PLAYER_ACTION, //Message sent by player to tell about the action it performed Neha
 		FREE_FORM_DUMMY,
 		FREE_FORM_MAX
 	};

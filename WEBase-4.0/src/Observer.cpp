@@ -687,12 +687,17 @@ void Observer::HearBall(const Vector & pos, const Vector & vel)
 	mAudioObserver.SetBall(pos, vel, mCurrentTime);
 }
 
+
 void Observer::HearBall(const Vector & pos)
 {
 	//std::cerr << mCurrentTime << " " << mSelfUnum << " hear ball " << pos << " " << std::endl;
 	mAudioObserver.SetBall(pos, mCurrentTime);
 }
 
+void Observer::HearAction(int actionType)
+{
+	mAudioObserver.SetActionType(actionType);
+}
 void Observer::HearTeammate(Unum num, const Vector & pos)
 {
 	//std::cerr << mCurrentTime << " " << mSelfUnum << " hear teammate " << num << " " << pos << std::endl;

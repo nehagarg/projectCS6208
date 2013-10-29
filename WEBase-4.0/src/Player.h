@@ -54,6 +54,7 @@ public:
 
     void Run();
     void SendOptionToServer();
+    int numRuns;
 };
 
 #endif

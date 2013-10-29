@@ -267,7 +267,18 @@ void Parser::Parse(char *msg)
 	case Sight_Msg: ParseTime(msg, &time_end, false); ParseSight(time_end); mpObserver->SetNewSight(); break;
 	case CoachSight_Msg: ParseTime(msg, &time_end, true); ParseSight_Coach(time_end); mpObserver->SetNewSight(); break;
 	case Sense_Msg: ParseTime(msg, &time_end, true); ParseSense(time_end); mpObserver->SetNewSense(); break;
-	case Hear_Msg: if(!ParseForTrainer(msg)){ ParseTime(msg, &time_end, true); ParseSound(time_end); }break;
+	case Hear_Msg:
+		//std::cout << "Received Hear Message" << msg << std::endl;
+		if(!ParseForTrainer(msg)){
+			//std::cout << "Not Parse For Trainer" << msg << std::endl;
+			ParseTime(msg, &time_end, true); ParseSound(time_end);
+		}
+		/*else
+		{
+			std::cout << "Parse For Trainer" << msg << std::endl;
+		}*/
+
+		break;
 	case PlayerParam_Msg: ParsePlayerParam(msg); break;
 	case ServerParam_Msg: ParseServerParam(msg); break;
 	case Disp_Msg: /*TODO: process disp message */ break;
@@ -1085,6 +1096,7 @@ void Parser::ParseSound(char *msg)
 	else if (msg[0] == 's') // self
 	{
 		// self say
+		//std::cout<<"Self said message:" << msg << std::endl;
 	}
 	else if (msg[0] == 'o') // coach say
 	{
@@ -1109,6 +1121,15 @@ void Parser::ParseSound(char *msg)
 	}
 	else // player say
 	{ //dir our|opp unum
+
+		//std::cout<<"Self said message:" << msg << std::endl;
+		msg += 2;
+		//char* teamName = parser::get_word(&msg);
+		Unum unum = parser::get_int(&msg);
+		int actionType = parser::get_int(&msg);
+		//std::cout << "ActionType : " << actionType << " and unum " << unum << std::endl;
+		mpObserver->HearAction(actionType);
+		if (false){
 		AngleDeg dir = parser::get_double(&msg);
 		if (msg[2] == 'u'){ //our
 			Unum unum = parser::get_int(&msg);
@@ -1124,8 +1145,10 @@ void Parser::ParseSound(char *msg)
 		}
 		else
 		{
+			//Neha
+
 			// opponent player say
-		}
+		}}
 	}
 }
 

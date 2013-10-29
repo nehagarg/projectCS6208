@@ -420,9 +420,9 @@ public:
 		HearInfo_Null = 0,
 		HearInfo_Ball = 1,
 		HearInfo_Teammate = 2,
-		HearInfo_Opponent = 4
+		HearInfo_Opponent = 4,
+		HearInfo_Action = 8
 	};
-
 	class AudioPlayer
 	{
 	public:
@@ -468,7 +468,7 @@ private:
 private:
 	AngleDeg    mHearDir;	//声源方向
 	Unum        mHearUnum;		//说话的队员号码
-
+	int mHearActionType;
 	//下面的量记录听觉信息解析后的信息内容
 	ObserverRecord<Vector> mBallPos;
 	ObserverRecord<Vector> mBallVel;
@@ -486,6 +486,7 @@ public:
         mIsTeammateSayValid = false;
 		mHearDir = 0.0;
 		mHearUnum = 0;
+		mHearActionType = 0;
 		mHearInfoType = HearInfo_Null;
 		mTeammateCount = mOpponentCount = 0;
 		for (int i = 1; i <= TEAMSIZE; ++i)
@@ -518,6 +519,15 @@ public:
 	{
 		mTeammateCount = mOpponentCount = 0;
 		mHearInfoType = HearInfo_Null;
+	}
+
+	int GetActionType() const {
+		return mHearActionType;
+	}
+
+	void SetActionType(int hearActionType) {
+		mHearActionType = hearActionType;
+		mHearInfoType |= HearInfo_Action;
 	}
 };
 
@@ -620,6 +630,7 @@ public:
 
 	void HearBall(const Vector & pos, const Vector & vel);
 	void HearBall(const Vector & pos);
+	void HearAction(int actionType);
 	void HearTeammate(Unum num, const Vector & pos);
 	void HearOpponent(Unum num, const Vector & pos);
     void HearOpponentType(const Unum & unum, const int & type) { mAudioObserver.SetOpponentType(unum, type); }
