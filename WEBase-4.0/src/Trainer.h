@@ -147,7 +147,7 @@ private:
 	void ParseCondition(const std::string & content);
 	void Record();
 	void RecordLSPI();
-	void Record_sarsop(Unum,int,int);
+	int Record_sarsop(Unum,int,int);
 	void ReadConverseConf(const std::string & str); //场景对调，这个可以试试看能不能找到一些新方法
 	void AddCondition(Trainer::Condition * superCondition, const char * name, const char * buffer);
 	void InitializeStadium();
