@@ -1186,15 +1186,18 @@ int Trainer::Record_sarsop(Unum num,int count,int action)
 	{
 		//no observation
 		ob<<state_num<<" ";
+		ob<<action<<" ";
 		ob<<0<<endl;
 	}
 	if (obs_marker==0)
 	{	ob<<state_num<<" ";
+		ob<<action<<" ";
 		ob<<1<<endl;
 	}
 	if (obs_ball==0)
 	{
 		ob<<state_num<<" ";
+		ob<<action<<" ";
 		ob<<2<<endl;
 	}
 	ob.close();
@@ -1223,10 +1226,12 @@ int Trainer::Record_sarsop(Unum num,int count,int action)
 	os.close();
 
 	//write step reward of -0.05 to each state action pairs
+	if (action!=9){
 	ore<<state_num<<" ";
 	ore<<action<<" ";
 	ore<<-0.05<<endl;
 	ore.close();
+	}
 
 	return state_num;
 
