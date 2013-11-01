@@ -176,6 +176,14 @@ public:
 	bool Recover(){ return GetActionEffector().SetRecoverAction(); }
 	bool CheckBall(){ return GetActionEffector().SetCheckBallAction(); }
 
+	bool isEpisodeEnded() const {
+		return mEpisodeEnded;
+	}
+
+	void setEpisodeEnded(bool episodeEnded) {
+		mEpisodeEnded = episodeEnded;
+	}
+
 	/**
 	 * Get ActionEffector of this agent.
 	 */
@@ -324,6 +332,7 @@ private:
 private:
 	Array<ActiveBehavior*, BT_Max, true> mActiveBehavior;
 	Array<ActiveBehavior*, BT_Max, true> mLastActiveBehavior;
+	bool mEpisodeEnded; // Variable to detect weather episode ended Neha
 };
 
 #endif /* AGENT_H_ */

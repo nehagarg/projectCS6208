@@ -117,7 +117,7 @@ void Player::Run()
 
 	if(mpAgent->World().GetPlayMode() == PM_Play_On){
 		mpDecisionTree->Decision(*mpAgent);
-		if(mpAgent->Self().IsAlive()){
+		if(!mpAgent->isEpisodeEnded()){
 
 			if(numRuns % 5 == 0)
 			{

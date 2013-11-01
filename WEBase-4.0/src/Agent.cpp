@@ -47,7 +47,8 @@ Agent::Agent(Unum unum, WorldModel *world_model, bool reverse):
 	mpStrategy(0),
 	mpAnalyser(0),
     mpActionEffector(0),
-    mpFormation(0)
+    mpFormation(0),
+    mEpisodeEnded(false)
 {
 }
 

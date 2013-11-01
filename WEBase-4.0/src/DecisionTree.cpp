@@ -54,7 +54,8 @@ bool DecisionTree::Decision(Agent & agent)
 		if(beh.GetType() == BT_Shoot)
 		{
 			agent.Say("9");
-			agent.Self().SetIsAlive(false);
+			//agent.Self().SetIsAlive(false);
+			agent.setEpisodeEnded(true);
 		}
 		return beh.Execute();
 	}
