@@ -1186,18 +1186,18 @@ int Trainer::Record_sarsop(Unum num,int count,int action)
 	{
 		//no observation
 		ob<<state_num<<" ";
-		ob<<action<<" ";
+		//ob<<action<<" ";
 		ob<<0<<endl;
 	}
 	if (obs_marker==0)
 	{	ob<<state_num<<" ";
-		ob<<action<<" ";
+		//ob<<action<<" ";
 		ob<<1<<endl;
 	}
 	if (obs_ball==0)
 	{
 		ob<<state_num<<" ";
-		ob<<action<<" ";
+		//ob<<action<<" ";
 		ob<<2<<endl;
 	}
 	ob.close();
