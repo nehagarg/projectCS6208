@@ -51,6 +51,7 @@ CPP_SRCS += \
 ../src/PlayerState.cpp \
 ../src/Plotter.cpp \
 ../src/PositionInfo.cpp \
+../src/RaoBlackWellParticleFilter.cpp \
 ../src/ServerParam.cpp \
 ../src/Simulator.cpp \
 ../src/Strategy.cpp \
@@ -114,6 +115,7 @@ OBJS += \
 ./src/PlayerState.o \
 ./src/Plotter.o \
 ./src/PositionInfo.o \
+./src/RaoBlackWellParticleFilter.o \
 ./src/ServerParam.o \
 ./src/Simulator.o \
 ./src/Strategy.o \
