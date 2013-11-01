@@ -112,6 +112,7 @@ void Trainer::Run() {
 
 	mpObserver->Lock();
 	static int countForPreState;
+	int action_g,state_g;
 	/** 下面几个更新顺序不能变 */
 	mpAgent->CheckCommands(mpObserver); // 检查上周期发送命令情况
 	mpWorldModel->Update(mpObserver);
@@ -152,9 +153,12 @@ void Trainer::Run() {
 			int cmp = type & AudioObserver::HearInfo_Action;
 			if (cmp != 0) {
 				int action=mpObserver->Audio().GetActionType();
+				cout<<"count is "<<countForPreState<<endl;
 				//std::cout << "Before Record sarsop " << action << std::endl;
-				Record_sarsop(playerNum,countForPreState,action);
+				 int state=Record_sarsop(playerNum,countForPreState,action);//LJK
 				//std::cout << "After Record sarsop " << action << std::endl;
+				 action_g=action;
+				 state_g=state;
 				countForPreState++;
 				if (mpObserver->Audio().GetActionType() == 9) {
 					mStopped = true;
@@ -162,6 +166,15 @@ void Trainer::Run() {
 				}
 				else if(mpAgent->World().Ball().GetPosConf() < 0.2){
 					//TODO print reward of -4 in reward structure
+					//agent lose track of ball, penalty of -4
+					double reward =-4;
+					cout<<"lose track of ball, penalty of -4!"<<endl;
+					ofstream ore;
+					ore.open("./train/Reward.txt",std::ofstream::app);
+					ore<<state_g<<" ";
+					ore<<action_g<<" ";
+					ore<<reward<<endl;
+					ore.close();
 					ReinitializeTrainer();
 				}
 				//RecordLSPI();
@@ -175,6 +188,15 @@ void Trainer::Run() {
 						|| mpObserver->Ball_Coach().GetVel().Mod() == 0) {
 					double reward = CalculateRewardFromGoal(pos);
 					std::cout << "Reward = " << reward << std::endl;
+					//record reward for terminal state received by taking action a at state s LJK
+					ofstream ore;
+					ore.open("./train/Reward.txt", std::ofstream::app);
+					//format: state-action-reward LJK
+					ore<<state_g<<" ";
+					ore<<action_g<<" ";
+					ore<<reward<<endl;
+					ore.close();
+
 					ReinitializeTrainer();
 
 				}
@@ -1130,11 +1152,12 @@ void Trainer::RecordLSPI()
 	//TODO
 }
 
-void Trainer::Record_sarsop(Unum num,int count,int action)
+int Trainer::Record_sarsop(Unum num,int count,int action)
 {
-	ofstream os;
-	os.open("./train/Transition1.txt", std::ofstream::app);
-	//double transition[216][9][216];
+	ofstream os,ob,ore;
+	os.open("./train/Transition.txt", std::ofstream::app);
+	ob.open("./train/Observation.txt", std::ofstream::app);
+	ore.open("./train/Reward.txt", std::ofstream::app);
 	Vector agent_pos_current=mpObserver->Teammate_Coach(num).GetPos();
 	double xa=agent_pos_current.X();
 	double ya=agent_pos_current.Y();
@@ -1153,7 +1176,32 @@ void Trainer::Record_sarsop(Unum num,int count,int action)
 	int direction2goal=getDirectionGoal(dir2goal);
 	int state_num=encode_sa(distance2ball ,direction2ball,direction2goal,action);
 
-	std::cout << "After discretizing" << state_num <<  std::endl;
+	//get observation LJK
+	int obs_marker=mpObserver->Teammate_Coach(num).GetPosDelay();
+	int obs_ball=mpObserver->Ball_Coach().GetPosDelay();
+	int observation;// no observation: 0; observe marker: 1; observe ball: 2;
+
+	//wtite to observation file LJK
+	if (obs_marker!=0 & obs_ball!=0)
+	{
+		//no observation
+		ob<<state_num<<" ";
+		//ob<<action<<" ";
+		ob<<0<<endl;
+	}
+	if (obs_marker==0)
+	{	ob<<state_num<<" ";
+		//ob<<action<<" ";
+		ob<<1<<endl;
+	}
+	if (obs_ball==0)
+	{
+		ob<<state_num<<" ";
+		//ob<<action<<" ";
+		ob<<2<<endl;
+	}
+	ob.close();
+
 	if (count==0)//first action is taken
 	{
 		myState_state=state_num;
@@ -1174,19 +1222,18 @@ void Trainer::Record_sarsop(Unum num,int count,int action)
 		//Nsas[myState_preState][action][myState_state]++;
 	}
 
-//	for (int i=0;i<216;i++)
-//		for (int j=0;j<9;j++)
-//			for (int k=0;k<216;k++)
-//			{
-//				if (Nsa[i][j] == 0)
-//					transition[i][j][k]=-1;
-//				else
-//					transition[i][j][k]=Nsas[i][j][k]/Nsa[i][j];
-
-			//	os<<transition[i][j][k]<<endl;
-			//}
 	std::cout << "Finished writing file \n";
 	os.close();
+
+	//write step reward of -0.05 to each state action pairs
+	if (action!=9){
+	ore<<state_num<<" ";
+	ore<<action<<" ";
+	ore<<-0.05<<endl;
+	ore.close();
+	}
+
+	return state_num;
 
 }
 int Trainer::encode_sa(int a,int b,int c, int d)

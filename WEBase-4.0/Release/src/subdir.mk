@@ -65,7 +65,8 @@ CPP_SRCS += \
 ../src/VisualSystem.cpp \
 ../src/WorldModel.cpp \
 ../src/WorldState.cpp \
-../src/main.cpp 
+../src/main.cpp \
+../src/RaoBlackWellParticleFilter.cpp
 
 OBJS += \
 ./src/ActionEffector.o \
@@ -129,7 +130,8 @@ OBJS += \
 ./src/VisualSystem.o \
 ./src/WorldModel.o \
 ./src/WorldState.o \
-./src/main.o 
+./src/main.o \
+./src/RaoBlackWellParticleFilter.o
 
 CPP_DEPS += \
 ./src/ActionEffector.d \
