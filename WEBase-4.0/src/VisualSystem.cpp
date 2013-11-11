@@ -162,6 +162,11 @@ int VisualSystem::OptimalLSPIAction(Observer &observer)
 {
 	//Read Weights
 	ifstream wFile ("./train/Weights.txt", ios::in);
+	if (!wFile.is_open())
+	{
+		std::cout << "Could not open Weights file \n";
+		exit(0);
+	}
 	double weights[6][9][6];
 	string weightsLine;
 	while (getline(wFile, weightsLine)){
@@ -178,7 +183,7 @@ int VisualSystem::OptimalLSPIAction(Observer &observer)
 			}
 			if(i==1)
 			{
-				distance = atoi(weightLinePart.c_str());
+				action = atoi(weightLinePart.c_str());
 			}
 			if(i>1)
 			{
@@ -236,7 +241,7 @@ int VisualSystem::OptimalAction(Observer &observer)
 {
 	//cout<<"Entered!"<<endl;
 	//int action=std::rand() % 9;
-	ifstream statelst ("/home/lijuekun/workspace/WEBase-4.0/Release/state_list.txt", ios::in);
+	ifstream statelst ("./train/state_list.txt", ios::in);
 	vector<int> state_list;
 	if (statelst.is_open()) // get the state list
 	  {
@@ -310,7 +315,7 @@ int VisualSystem::OptimalAction(Observer &observer)
 	}
 
 	//read alpha vector file
-	ifstream file("/home/lijuekun/workspace/WEBase-4.0/Release/alphaVector.txt", ios::in);
+	ifstream file("./train/alphaVector.txt", ios::in);
 		int dim;
 		if (file.is_open())
 		{
@@ -384,7 +389,8 @@ std::string VisualSystem::MyDecision(Observer &observer)
 
 
 	int i;
-	//i = std::rand() % 9 ; //2
+	//i = std::rand() % 12 ; //2
+	//if(i > 8) i = 2; //Adding some bias for looking at ball as there are 8 markers and only one ball
 	//i = OptimalAction(observer);
 	i=OptimalLSPIAction(observer);
 

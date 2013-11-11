@@ -54,6 +54,9 @@ Player::Player() :
 	numEpisodes = 0;
 	lookedAtBall = false;
 	lookedAtMarker = false;
+	positionsSet = false;
+	//ballPosVector(0,0);// = new Vector(0,0);
+	//selfPosVector(0,0);// = new Vector(0,0);
 }
 
 Player::~Player() {
@@ -112,10 +115,10 @@ void Player::Run() {
 
 	Formation::instance.UpdateOpponentRole(); //TODO: 暂时放在这里，教练未发来对手阵型信息时自己先计算
 	//mpRaoBlackWellParticleFilter->getNewRobotLocationEstimate(*mpAgent);
-	VisualSystem::instance().ResetVisualRequest();
+	//VisualSystem::instance().ResetVisualRequest();
 
 	if (mpAgent->World().GetPlayMode() == PM_Play_On) {
-
+		positionsSet = false;
 		if(lookedAtBall && lookedAtMarker){
 		if (!mpAgent->isEpisodeEnded()) {
 
@@ -123,7 +126,7 @@ void Player::Run() {
 				actionNeckValue = VisualSystem::instance().MyDecision(*mpObserver);
 				//CommunicateSystem::instance().SendTeammateStatus(*mpAgent->World(), mpAgent->GetSelf().GetUnum(), 0);
 			}
-			if (numRuns % 5 == 0){ // Change 0 to 1 for sarsop
+			if (numRuns % 5 == 0){ // Change 0 to 1 for sarsop data gathering
 				ss.str("");
 				ss << actionNeckValue;
 				ss << " " << mpAgent->GetSelf().GetPosDelay();
@@ -198,14 +201,26 @@ void Player::Run() {
 	else
 	{
 		mpAgent->setEpisodeEnded(false);
-		Vector* b = new Vector(35, 20); // Set ball position
-		mpAgent->World().Ball().UpdatePos(*b, 0, 1.0);
-		Vector* p = new Vector(-10, 10); //set player position
-		mpAgent->Self().UpdatePos(*p, 0, 1.0);
+		//int  ballballPosVectorY;
+		//int selfPosVectorX, selfPosVectorY;
+		int ballPositionXArray[2] = {35, 25};
+		int ballPositionYArray[5] = {20, 10, 0, -10, -20};
+		int selfPositionXArray[1] = {-10};
+		int selfPositionYArray[5] = {25, 15, 0 , -10, -20};
+		if(!positionsSet)
+		{
+
+			//ballPosVectorX = 35; ballPosVectorY = 20;// = new Vector(35, 20); // Set ball position
+			//selfPosVectorX = -10; selfPosVectorY = 10;
+			positionsSet = true;
+			numEpisodes++;
+		}
 		lookedAtBall = false;
 		lookedAtMarker = false;
-
-
+		Vector *b = new Vector(ballPositionXArray[((numEpisodes -1)/5)%2], ballPositionYArray[(numEpisodes -1)%5] );
+		Vector *p = new Vector(selfPositionXArray[((numEpisodes -1)/50)%1], selfPositionYArray[((numEpisodes -1)/10)%5]);
+		mpAgent->World().Ball().UpdatePos(*b, 0, 1.0);
+		mpAgent->Self().UpdatePos(*p, 0, 1.0);
 
 		//lookedAtBall = true;
 		//lookedAtMarker = true;
@@ -230,13 +245,13 @@ void Player::Run() {
 			mpAgent->Say(ss.str());
 			ss.clear();
 			numRuns = 0;
-			numEpisodes++;
 
-			if(numEpisodes == 7)
+
+			if(numEpisodes == 51)
 			{
 				exit(0);
 			}
 		//}
-		mpRaoBlackWellParticleFilter->getNewRobotLocationEstimate(*mpAgent);
+		//mpRaoBlackWellParticleFilter->getNewRobotLocationEstimate(*mpAgent);
 	}
 }

@@ -722,9 +722,9 @@ double Dasher::GetBall(Agent & agent, AtomicAction & act, int int_cycle , bool c
 		int_cycle = Max(0, agent.GetStrategy().GetMyInterCycle());
 	}
 	//int_cycle = 1;
-	std::cout << "Max consider cycle " << int_cycle << std::endl;
-	std::cout << "Predicted Ball position " << agent.GetWorldState().GetBall().GetPredictedPos(int_cycle).X() << " " << agent.GetWorldState().GetBall().GetPredictedPos(int_cycle).Y() << std::endl;
-	std::cout << "Ball position " << agent.GetWorldState().GetBall().GetPos().X() <<  " " << agent.GetWorldState().GetBall().GetPos().Y() << std::endl;
+	//std::cout << "Max consider cycle " << int_cycle << std::endl;
+	//std::cout << "Predicted Ball position " << agent.GetWorldState().GetBall().GetPredictedPos(int_cycle).X() << " " << agent.GetWorldState().GetBall().GetPredictedPos(int_cycle).Y() << std::endl;
+	//std::cout << "Ball position " << agent.GetWorldState().GetBall().GetPos().X() <<  " " << agent.GetWorldState().GetBall().GetPos().Y() << std::endl;
 	GoToPoint(
 			agent,
 			act,

@@ -105,9 +105,9 @@ void Trainer::SendOptionToServer() {
 
 void Trainer::Run() {
 	//TIMETEST("coach_run");
-	if (mTrainCount == 2) {
-		exit(0);
-	}
+	//if (mTrainCount == 51) {
+		//exit(0);
+	//}
 	mpObserver->Lock();
 	static int countForPreState;
 	int action_g, state_g;
@@ -142,10 +142,16 @@ void Trainer::Run() {
 			Vector* pp = new Vector(playerPosValues[0], playerPosValues[1]);
 			Vector* pv = new Vector(0, 0);
 			MovePlayer(mPlayerNum, *pp, *pv, 0);
+			Recover();
 			std::cout << "Moving player to " << playerPosValues[0] << " "
-					<< playerPosValues[1] << std::endl;
+					<< playerPosValues[1] << "and ball to " << playerPosValues[5] << " " << playerPosValues[6]  <<  std::endl;
+			mTrainCount++;
+			std::cout << "Training for episode " << mTrainCount << "\n";
+			if (mTrainCount == 51) {
+									exit(0);
+							}
 			ofstream os, ob, ore, olspi;
-			if(mTrainCount == 0){ //Hack because we run continuously only for one episode
+			//if(mTrainCount == 0){ //Hack because we run only for one episode
 			os.open("./train/Transition.txt", std::ofstream::app);
 			ob.open("./train/Observation.txt", std::ofstream::app);
 			ore.open("./train/Reward.txt", std::ofstream::app);
@@ -159,10 +165,10 @@ void Trainer::Run() {
 			ob.close();
 			ore.close();
 			olspi.close();
-			}
+			//}
 			mInitialized = true;
 			countForPreState = 0;
-			mTrainCount++;
+
 
 		}
 	}
@@ -194,7 +200,7 @@ void Trainer::Run() {
 				int playerPosDelay = mpObserver->Audio().GetPlayerPosDelay();
 				int ballPosDelay = mpObserver->Audio().GetBallPosDelay();
 				//cout << "count is " << countForPreState << endl;
-				std::cout << "Before Record sarsop " << action << std::endl;
+				//std::cout << "Before Record sarsop " << action << std::endl;
 				//std::cout << "Ball Pos Conf is : " << mpAgent->World().Ball().GetPosConf() << std::endl;
 				if (mpObserver->Audio().GetActionType() == 9) {
 					mStopped = true;
@@ -295,6 +301,9 @@ void Trainer::ReinitializeTrainer() {
 	mInitialized = false;
 	mSetup = false;
 	mPlayerNum = -1;
+	/*if (mTrainCount == 1) {
+						exit(0);
+				}*/
 
 }
 double Trainer::CalculateRewardFromGoal(Vector pos) {
@@ -304,7 +313,7 @@ double Trainer::CalculateRewardFromGoal(Vector pos) {
 	if(initPos->Dist(pos) <=0.01)
 	{
 		std::cout << "Could not kick ball properly \n";
-		return -5;
+		return -3;
 	}
 	if (pos.Y() > mpObserver->Marker(Flag_GRT).GlobalPosition().Y()
 			&& pos.Y() < mpObserver->Marker(Flag_GRB).GlobalPosition().Y()
@@ -1196,9 +1205,9 @@ int Trainer::Record_sarsop(Unum num, int count, int action, int playerPosDelay, 
 	double dir2ball = abs(
 			(ball_pos_current - agent_pos_current).Dir() - dir_agent);
 	double Dis2ball = ball_pos_current.Dist(agent_pos_current);
-	std::cout << "Ball POs : " <<  ball_pos_current.X() << " " << ball_pos_current.Y() << std::endl;
-	std::cout << "Player POs : " << num << " " << agent_pos_current.X() << " " << agent_pos_current.Y() << std::endl;
-	std::cout << "Distance to ball is : " << Dis2ball << std::endl;
+	//std::cout << "Ball POs : " <<  ball_pos_current.X() << " " << ball_pos_current.Y() << std::endl;
+	//std::cout << "Player POs : " << num << " " << agent_pos_current.X() << " " << agent_pos_current.Y() << std::endl;
+	//std::cout << "Distance to ball is : " << Dis2ball << std::endl;
 	double dir2goal = abs(
 			(goal_location - agent_pos_current).Dir() - dir_agent);
 	int distance2ball = getDistance(Dis2ball);
@@ -1247,6 +1256,7 @@ int Trainer::Record_sarsop(Unum num, int count, int action, int playerPosDelay, 
 		olspi << playerPosValues[2] << " " ; // not writing pos eps and dir conf << playerPosValues[9] << " " << playerPosValues[4] << " ";
 		olspi << playerPosValues[7] << " " ; // not writing ball pos eps << playerPosValues[10] << " ";
 		//olspi << playerPosDelay << " " << ballPosDelay << " ";
+		olspi << turnNeckCost << " ";
 
 	} else {
 		//update transition
@@ -1271,7 +1281,7 @@ int Trainer::Record_sarsop(Unum num, int count, int action, int playerPosDelay, 
 		olspi << playerPosValues[2] << " " ; // not writing pos eps and dir conf << playerPosValues[9] << " " << playerPosValues[4] << " ";
 		olspi << playerPosValues[7] << " " ; // not writing ball pos eps << playerPosValues[10] << " ";
 		//olspi << playerPosDelay << " " << ballPosDelay << " ";
-
+		olspi << turnNeckCost << " ";
 		//Nsas[myState_preState][action][myState_state]++;
 	}
 

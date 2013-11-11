@@ -58,10 +58,16 @@ public:
     void SendOptionToServer();
     int numRuns;
     int numEpisodes;
+    //int ballPosVectorX;
+    //int ballPosVectorY;
+    //int selfPosVectorX;
+    //int selfPosVectorY;
     bool lookedAtMarker;
     bool lookedAtBall;
+    bool positionsSet;
     std::string actionNeckValue;
     std::ostringstream ss;
+
 
 };
 

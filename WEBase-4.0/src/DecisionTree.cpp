@@ -89,11 +89,11 @@ bool DecisionTree::Decision(Agent & agent)
 		{
 			if (agent.GetSelf().IsKickable())
 			{
-				std::cout << "is kickable" << std::endl;
+				//std::cout << "is kickable" << std::endl;
 			}
 			else
 			{
-				std::cout << "cannot kick" << std::endl;
+				//std::cout << "cannot kick" << std::endl;
 			}
 
 			return Dasher::instance().GetBall(agent);

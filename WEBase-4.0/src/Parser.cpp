@@ -1142,7 +1142,7 @@ void Parser::ParseSound(char *msg)
 		double selfEps = parser::get_double(&msg);
 		double selfBallEps = parser::get_double(&msg);
 		double posValues[11]= {selfPosX, selfPosY, selfPosConf, selfBodyDir, selfBodyDirConf, selfBallX, selfBallY, selfBallConf, turnNeckValue, selfEps, selfBallEps};
-		std::cout << "ActionType : " << actionType << " and unum " << unum << std::endl;
+		//std::cout << "ActionType : " << actionType << " and unum " << unum << std::endl;
 		mpObserver->HearAction(actionType, posValues, playerPosDelay, ballPosDelay);
 		if (false){
 		AngleDeg dir = parser::get_double(&msg);
