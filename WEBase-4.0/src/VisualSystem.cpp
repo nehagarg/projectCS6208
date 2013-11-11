@@ -231,13 +231,16 @@ int VisualSystem::OptimalLSPIAction(Observer &observer)
 	}
 	return maxIndex;
 }
+
 int VisualSystem::OptimalAction(Observer &observer)
 {
+	//cout<<"Entered!"<<endl;
 	//int action=std::rand() % 9;
-	ifstream statelst ("state_list.txt", ios::in);
+	ifstream statelst ("/home/lijuekun/workspace/WEBase-4.0/Release/state_list.txt", ios::in);
 	vector<int> state_list;
 	if (statelst.is_open()) // get the state list
 	  {
+		//cout<<"STATE LIST IS OPEN!"<<endl;
 		while(statelst.good()) // To get you all the lines.
 		 {
 			string STRING;
@@ -247,20 +250,35 @@ int VisualSystem::OptimalAction(Observer &observer)
 		 }
 	    statelst.close();
 	  }
-	//get conf of Db, Angle2ball, Angle2goal TODO
+	else
+		cout<<"state list is NOT read!!!"<<endl;
+//	ifstream actionlst ("action_list.txt", ios::in);
+//	vector<int> action_list;
+//	if (actionlst.is_open()) // get the state list
+//	  {
+//		while(actionlst.good()) // To get you all the lines.
+//		 {
+//			string STRING1;
+//			getline(actionlst,STRING1); // Saves the line in STRING.
+//			int A = atoi(STRING1.c_str());
+//			action_list.push_back(A);
+//		 }
+//		actionlst.close();
+//	  }
+	//get conf of Db, Angle2ball, Angle2goal
 	double conf_Db,conf_A2b,conf_A2g;
 	conf_Db = mpAgent->World().Ball().GetPosConf();
 	conf_A2b = conf_Db;
 	conf_A2g = mpAgent->Self().GetPosConf();
-	//get player's estimate of Db, Angle2ball, Angle2goal TODO
+	//get player's estimate of Db, Angle2ball, Angle2goal
 	double Db,A2b,A2g;
-
 	Db = mpAgent->World().Ball().GetPos().Dist(mpAgent->Self().GetPos());
 	A2b = abs((mpAgent->World().Ball().GetPos() - mpAgent->Self().GetPos()).Dir() - mpAgent->Self().GetBodyDir());
 	A2g = abs((observer.Marker(MarkerType(1)).GlobalPosition() - mpAgent->Self().GetPos()).Dir() - mpAgent->Self().GetBodyDir());
+	//(observer.Marker((MarkerType)i).GlobalPosition()- mpAgent->GetSelf().GetPos()).Dir();
 
 	int Db_mean_state,A2b_mean_state,A2g_mean_state;
-	Db_mean_state=getDistance(Db);
+	Db_mean_state=getDistance(Db)-1;
 	A2b_mean_state=getDirectionBall(A2b);
 	A2g_mean_state=getDirectionGoal(A2g);
 	//form three independent normal distribution with player's estimates as mean
@@ -292,10 +310,11 @@ int VisualSystem::OptimalAction(Observer &observer)
 	}
 
 	//read alpha vector file
-	ifstream file("alphaVector.txt");
+	ifstream file("/home/lijuekun/workspace/WEBase-4.0/Release/alphaVector.txt", ios::in);
 		int dim;
 		if (file.is_open())
 		{
+			//cout<<"ALPHA VECTOR FILE IS OPEN!"<<endl;
 			string dimstr;
 			getline(file,dimstr);
 			dim=atoi(dimstr.c_str());
@@ -306,7 +325,9 @@ int VisualSystem::OptimalAction(Observer &observer)
 	    alpha_vector avt;
 		while (getline(file,line))
 		{
+			//cout<<"TO GET ALPHA VALUE!"<<endl;
 			avt.action=line[0]-'0';
+			//cout<<"ACTION NUMBER IS  "<<line[0]<<endl;
 			int len=line.length();
 			string value;
 			for (int i=2;i<len;i++)
@@ -341,7 +362,8 @@ int VisualSystem::OptimalAction(Observer &observer)
 				}
 				else
 				{
-					for (int ii=0;ii<avv_size;i++)
+					//cout<<"CALCULATING OPTIMAL ACTION!!!"<<endl;
+					for (int ii=0;ii<avv_size;ii++)
 						sum+=avv.values[ii]*belief[ii];
 					if (sum>=max)
 					{
@@ -353,8 +375,6 @@ int VisualSystem::OptimalAction(Observer &observer)
 
 	return optimal_avv.action;
 }
-
-
 std::string VisualSystem::MyDecision(Observer &observer)
 {
 	//AngleDeg selfPosAngle = mpAgent->GetSelf().GetPos().Dir();
