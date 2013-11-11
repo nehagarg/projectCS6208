@@ -694,9 +694,9 @@ void Observer::HearBall(const Vector & pos)
 	mAudioObserver.SetBall(pos, mCurrentTime);
 }
 
-void Observer::HearAction(int actionType)
+void Observer::HearAction(int actionType, double posValues[], int playerPosDelay, int ballPosDelay)
 {
-	mAudioObserver.SetActionType(actionType);
+	mAudioObserver.SetActionType(actionType, posValues, playerPosDelay, ballPosDelay);
 }
 void Observer::HearTeammate(Unum num, const Vector & pos)
 {

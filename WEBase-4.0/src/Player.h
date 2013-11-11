@@ -35,6 +35,8 @@
 
 #include "Client.h"
 #include "RaoBlackWellParticleFilter.h"
+#include <sstream>
+
 
 class DecisionTree;
 class  BeliefState;
@@ -55,6 +57,12 @@ public:
     void Run();
     void SendOptionToServer();
     int numRuns;
+    int numEpisodes;
+    bool lookedAtMarker;
+    bool lookedAtBall;
+    std::string actionNeckValue;
+    std::ostringstream ss;
+
 };
 
 #endif

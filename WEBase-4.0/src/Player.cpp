@@ -47,30 +47,28 @@
 #include "Dasher.h"
 #include "RaoBlackWellParticleFilter.h"
 
-Player::Player():
-	mpDecisionTree( new DecisionTree ),
-	mpRaoBlackWellParticleFilter (new RaoBlackWellParticleFilter)
-{
+Player::Player() :
+		mpDecisionTree(new DecisionTree), mpRaoBlackWellParticleFilter(
+				new RaoBlackWellParticleFilter) {
 	numRuns = 0;
+	numEpisodes = 0;
+	lookedAtBall = false;
+	lookedAtMarker = false;
 }
 
-Player::~Player()
-{
+Player::~Player() {
 	delete mpDecisionTree;
 }
 
-void Player::SendOptionToServer()
-{
-	while (!mpParser->IsClangOk())
-	{
+void Player::SendOptionToServer() {
+	while (!mpParser->IsClangOk()) {
 		mpAgent->CheckCommands(mpObserver);
 		mpAgent->Clang(7, 8);
 		mpObserver->SetCommandSend();
 		WaitFor(200);
 	}
 
-	while (!mpParser->IsSyncOk())
-	{
+	while (!mpParser->IsSyncOk()) {
 		mpAgent->CheckCommands(mpObserver);
 		mpAgent->SynchSee();
 		mpObserver->SetCommandSend();
@@ -83,9 +81,8 @@ void Player::SendOptionToServer()
 	WaitFor(200);
 }
 
-void Player::Run()
-{
-    //TIMETEST("Run");
+void Player::Run() {
+	//TIMETEST("Run");
 
 	static Time last_time = Time(-100, 0);
 
@@ -99,12 +96,14 @@ void Player::Run()
 
 	mpObserver->UnLock();
 
-    const Time & time = mpAgent->GetWorldState().CurrentTime();
+	const Time & time = mpAgent->GetWorldState().CurrentTime();
 
 	if (last_time.T() >= 0) {
-		if (time != Time(last_time.T() + 1, 0) && time != Time(last_time.T(), last_time.S() + 1)) {
+		if (time != Time(last_time.T() + 1, 0)
+				&& time != Time(last_time.T(), last_time.S() + 1)) {
 			if (time == last_time) {
-				mpAgent->World().SetCurrentTime(Time(last_time.T(), last_time.S() + 1)); //否则决策数据更新会出问题
+				mpAgent->World().SetCurrentTime(
+						Time(last_time.T(), last_time.S() + 1)); //否则决策数据更新会出问题
 			}
 		}
 	}
@@ -112,31 +111,132 @@ void Player::Run()
 	last_time = time;
 
 	Formation::instance.UpdateOpponentRole(); //TODO: 暂时放在这里，教练未发来对手阵型信息时自己先计算
-	mpRaoBlackWellParticleFilter->getNewRobotLocationEstimate(*mpAgent);
+	//mpRaoBlackWellParticleFilter->getNewRobotLocationEstimate(*mpAgent);
 	VisualSystem::instance().ResetVisualRequest();
 
-	if(mpAgent->World().GetPlayMode() == PM_Play_On){
-		mpDecisionTree->Decision(*mpAgent);
-		if(!mpAgent->isEpisodeEnded()){
+	if (mpAgent->World().GetPlayMode() == PM_Play_On) {
 
-			if(numRuns % 5 == 0)
-			{
-				VisualSystem::instance().MyDecision(*mpObserver);
+		if(lookedAtBall && lookedAtMarker){
+		if (!mpAgent->isEpisodeEnded()) {
+
+			if (numRuns % 5 == 0) {
+				actionNeckValue = VisualSystem::instance().MyDecision(*mpObserver);
 				//CommunicateSystem::instance().SendTeammateStatus(*mpAgent->World(), mpAgent->GetSelf().GetUnum(), 0);
 			}
+			if (numRuns % 5 == 0){ // Change 0 to 1 for sarsop
+				ss.str("");
+				ss << actionNeckValue;
+				ss << " " << mpAgent->GetSelf().GetPosDelay();
+				ss << " " << mpAgent->World().Ball().GetPosDelay();
+				ss << " " << mpAgent->GetSelf().GetPos().X();
+				ss << " " << mpAgent->GetSelf().GetPos().Y();
+				ss << " " << mpAgent->GetSelf().GetPosConf();
+				ss << " " << mpAgent->GetSelf().GetBodyDir();
+				ss << " " << mpAgent->GetSelf().GetBodyDirConf();
+				ss << " " << mpAgent->World().Ball().GetPos().X();
+				ss << " " << mpAgent->World().Ball().GetPos().Y();
+				ss << " " << mpAgent->World().Ball().GetPosConf();
+				ss << " " << mpAgent->GetSelf().GetPosEps();
+				ss << " " << mpAgent->World().Ball().GetPosEps();
+				std::cout << "Sending string " << ss.str() << std::endl;
+				mpAgent->Say(ss.str());
+			}
+
 			//VisualSystem::instance().Decision();
 			//CommunicateSystem::instance().Decision();
 
 			mpAgent->SetHistoryActiveBehaviors();
 			numRuns++;
+
 			Logger::instance().LogSight();
+
 		}
+
+		bool actionExecuted = mpDecisionTree->Decision(*mpAgent);
+		if(mpAgent->isEpisodeEnded() && actionExecuted)
+			{
+				ss.str("");
+				ss << "9";
+				ss << " 0" ; // neck turn angle
+				ss << " " << mpAgent->GetSelf().GetPosDelay();
+				ss << " " << mpAgent->World().Ball().GetPosDelay();
+				ss << " " << mpAgent->GetSelf().GetPos().X();
+				ss << " " << mpAgent->GetSelf().GetPos().Y();
+				ss << " " << mpAgent->GetSelf().GetPosConf();
+				ss << " " << mpAgent->GetSelf().GetBodyDir();
+				ss << " " << mpAgent->GetSelf().GetBodyDirConf();
+				ss << " " << mpAgent->World().Ball().GetPos().X();
+				ss << " " << mpAgent->World().Ball().GetPos().Y();
+				ss << " " << mpAgent->World().Ball().GetPosConf();
+				ss << " " << mpAgent->GetSelf().GetPosEps();
+				ss << " " << mpAgent->World().Ball().GetPosEps();
+				//std::cout << "Sending episode end message to trainer" << ss.str() << " \n";
+				mpAgent->Say(ss.str());
+
+			}
+		}
+		if (lookedAtMarker && !lookedAtBall) {
+			AngleDeg target = (mpAgent->World().Ball().GetPos()
+					- mpAgent->GetSelf().GetPos()).Dir();
+			mpAgent->TurnNeck(
+					target - mpAgent->GetSelf().GetNeckDir()
+							- mpAgent->GetSelf().GetBodyDir());
+			lookedAtBall = true;
+		}
+		if (!lookedAtMarker) {
+			AngleDeg target = (mpObserver->Marker(Goal_L).GlobalPosition()
+					- mpAgent->GetSelf().GetPos()).Dir();
+			mpAgent->TurnNeck(
+					target - mpAgent->GetSelf().GetNeckDir()
+							- mpAgent->GetSelf().GetBodyDir());
+			lookedAtMarker = true;
+		}
+
+
+
 	}
 	else
 	{
-		std::ostringstream ss;
-				ss << mpAgent->GetSelf().GetUnum();
-				mpAgent->Say(ss.str());
-				numRuns = 0;
+		mpAgent->setEpisodeEnded(false);
+		Vector* b = new Vector(35, 20); // Set ball position
+		mpAgent->World().Ball().UpdatePos(*b, 0, 1.0);
+		Vector* p = new Vector(-10, 10); //set player position
+		mpAgent->Self().UpdatePos(*p, 0, 1.0);
+		lookedAtBall = false;
+		lookedAtMarker = false;
+
+
+
+		//lookedAtBall = true;
+		//lookedAtMarker = true;
+		//if(lookedAtBall && lookedAtMarker)
+		//{
+			ss.str("");
+			ss << mpAgent->GetSelf().GetUnum();
+			ss << " 0" ; // neck turn angle
+			ss << " " << mpAgent->GetSelf().GetPosDelay();
+			ss << " " << mpAgent->World().Ball().GetPosDelay();
+			ss << " " << mpAgent->GetSelf().GetPos().X();
+			ss << " " << mpAgent->GetSelf().GetPos().Y();
+			ss << " " << mpAgent->GetSelf().GetPosConf();
+			ss << " " << mpAgent->GetSelf().GetBodyDir();
+			ss << " " << mpAgent->GetSelf().GetBodyDirConf();
+			ss << " " << mpAgent->World().Ball().GetPos().X();
+			ss << " " << mpAgent->World().Ball().GetPos().Y();
+			ss << " " << mpAgent->World().Ball().GetPosConf();
+			ss << " " << mpAgent->GetSelf().GetPosEps();
+			ss << " " << mpAgent->World().Ball().GetPosEps();
+
+			mpAgent->Say(ss.str());
+			ss.clear();
+			numRuns = 0;
+			numEpisodes++;
+
+			if(numEpisodes == 7)
+			{
+				exit(0);
+			}
+		//}
+		mpRaoBlackWellParticleFilter->getNewRobotLocationEstimate(*mpAgent);
 	}
 }

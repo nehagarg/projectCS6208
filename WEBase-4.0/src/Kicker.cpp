@@ -285,7 +285,7 @@ double Kicker::GetMaxSpeed(const Agent & agent, const Vector & kick_pos, const i
 bool Kicker::KickBall(Agent & agent, const Vector & target, double speed_out, int cycle, bool is_shoot)
 {
 	UpdateKickData(agent);
-
+	//std::cout << "Cycle value is : " << cycle << std::endl;
 	mKickSpeed  = speed_out;
 	mKickTarget = (target-mInput.mPlayerPos).Rotate(-mInput.mPlayerBodyDir);
 
@@ -414,7 +414,9 @@ bool Kicker::KickBall(Agent & agent, const Vector & target, double speed_out, Ki
 	{
 		*cycle_left = kick_cycle - 1;
 	}
-
+	kick_speed = ServerParam::instance().ballSpeedMax();
+	std::cout << "kick speed is : " << kick_speed << std::endl;
+	kick_cycle = 1;
 	bool rt = KickBall(agent, target, kick_speed, kick_cycle, is_shoot); // 花kick_cycle周期踢球，目标点为target，出球速度为SpeedOut
 	return rt;
 }

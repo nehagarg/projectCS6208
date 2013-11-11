@@ -1126,9 +1126,24 @@ void Parser::ParseSound(char *msg)
 		msg += 2;
 		//char* teamName = parser::get_word(&msg);
 		Unum unum = parser::get_int(&msg);
+
 		int actionType = parser::get_int(&msg);
-		//std::cout << "ActionType : " << actionType << " and unum " << unum << std::endl;
-		mpObserver->HearAction(actionType);
+		double turnNeckValue = parser::get_double(&msg);
+		int playerPosDelay = parser::get_int(&msg);
+		int ballPosDelay = parser::get_int(&msg);
+		double selfPosX = parser::get_double(&msg);
+		double selfPosY = parser::get_double(&msg);
+		double selfPosConf = parser::get_double(&msg);
+		double selfBodyDir = parser::get_double(&msg);
+		double selfBodyDirConf = parser::get_double(&msg);
+		double selfBallX = parser::get_double(&msg);
+		double selfBallY = parser::get_double(&msg);
+		double selfBallConf = parser::get_double(&msg);
+		double selfEps = parser::get_double(&msg);
+		double selfBallEps = parser::get_double(&msg);
+		double posValues[11]= {selfPosX, selfPosY, selfPosConf, selfBodyDir, selfBodyDirConf, selfBallX, selfBallY, selfBallConf, turnNeckValue, selfEps, selfBallEps};
+		std::cout << "ActionType : " << actionType << " and unum " << unum << std::endl;
+		mpObserver->HearAction(actionType, posValues, playerPosDelay, ballPosDelay);
 		if (false){
 		AngleDeg dir = parser::get_double(&msg);
 		if (msg[2] == 'u'){ //our

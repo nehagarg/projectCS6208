@@ -40,6 +40,17 @@
 #include "Agent.h"
 #include "BehaviorShoot.h"
 #include "Logger.h"
+#include "Trainer.h"
+
+#include <list>
+#include <string>
+#include <sstream>
+#include <iostream>
+#include <fstream>
+#include <vector>
+#include <math.h>
+
+using namespace std;
 
 VisualSystem::VisualSystem()
 {
@@ -108,13 +119,256 @@ void VisualSystem::ResetVisualRequest()
 	ViewModeDecision();
 }
 
-void VisualSystem::MyDecision(Observer &observer)
+double VisualSystem::normaldist(double mean,double std,double x)
+{
+	double c=1/std/sqrt(2*3.1415926);
+	double e=exp(-(x-mean)*(x-mean)/2/std/std);
+	return c*e;
+}
+int VisualSystem::getDistance(double dis) {
+	//<=20: 1; 20<x<=30: 2; 30<x<=40: 3; 40<x<=50: 4; 50<x<=60: 5; >60: 6
+
+	if (dis <= 10)
+		return 1;
+	else if (dis <= 20)
+		return 2;
+	else if (dis <= 30)
+		return 3;
+	else if (dis <= 40)
+		return 4;
+	else if (dis <= 50)
+		return 5;
+	else
+		return 6;
+}
+
+int VisualSystem::getDirectionBall(double dir) {
+	dir = abs(dir - 1);
+	//discretize into 6 regions
+	return int(floor(dir / 30.0));
+}
+
+int VisualSystem::getDirectionGoal(double dir) {
+	dir = abs(dir - 1);
+	return int(floor(dir / 30.0));
+}
+
+struct alpha_vector{
+		int action;
+		vector<double> values;
+};
+
+int VisualSystem::OptimalLSPIAction(Observer &observer)
+{
+	//Read Weights
+	ifstream wFile ("./train/Weights.txt", ios::in);
+	double weights[6][9][6];
+	string weightsLine;
+	while (getline(wFile, weightsLine)){
+		istringstream iss(weightsLine);
+		int i = 0;
+		int distance = -1;
+		int action = -1;
+		while(iss){
+			string weightLinePart;
+			iss >> weightLinePart;
+			if(i==0)
+			{
+				distance = atoi(weightLinePart.c_str());
+			}
+			if(i==1)
+			{
+				distance = atoi(weightLinePart.c_str());
+			}
+			if(i>1)
+			{
+				weights[distance][action][i-2] = atof(weightLinePart.c_str());
+			}
+			i++;
+		}
+	}
+	wFile.close();
+
+	//get player's estimate of Db, Angle2ball, Angle2goal TODO
+	double Db,A2b,A2g;
+
+	Db = mpAgent->World().Ball().GetPos().Dist(mpAgent->Self().GetPos());
+	A2b = abs((mpAgent->World().Ball().GetPos() - mpAgent->Self().GetPos()).Dir() - mpAgent->Self().GetBodyDir());
+	A2g = abs((observer.Marker(MarkerType(1)).GlobalPosition() - mpAgent->Self().GetPos()).Dir() - mpAgent->Self().GetBodyDir());
+
+	int discretizedDistance = getDistance(Db) -1;
+
+	double QValue[9];
+	for(int i = 0; i< 9; i++)
+	{
+		double target;
+		if (i == 2) //look at ball
+		{
+			target = (mpAgent->World().Ball().GetPos() - mpAgent->GetSelf().GetPos()).Dir();
+
+		}
+		else  //look at marker
+		{
+				target = (observer.Marker((MarkerType)i).GlobalPosition()- mpAgent->GetSelf().GetPos()).Dir();
+		}
+		double estimatedTurnNeckAngle = abs(target - mpAgent->GetSelf().GetNeckDir() - mPreBodyDir);
+		QValue[i] = (A2b*weights[discretizedDistance][i][0]) + (A2g*weights[discretizedDistance][i][1]) +
+				(estimatedTurnNeckAngle * weights[discretizedDistance][i][2]) +
+				(mpAgent->Self().GetPosConf() * weights[discretizedDistance][i][3]) +
+				(mpAgent->World().Ball().GetPosConf() * weights[discretizedDistance][i][4]) + weights[discretizedDistance][i][5];
+
+	}
+
+	double max = QValue[0];
+	int maxIndex = 0;
+	for(int i=1; i < 9;i++)
+	{
+		if (QValue[i] > max)
+		{
+			max = QValue[i];
+			maxIndex = i;
+		}
+	}
+	return maxIndex;
+}
+int VisualSystem::OptimalAction(Observer &observer)
+{
+	//int action=std::rand() % 9;
+	ifstream statelst ("state_list.txt", ios::in);
+	vector<int> state_list;
+	if (statelst.is_open()) // get the state list
+	  {
+		while(statelst.good()) // To get you all the lines.
+		 {
+			string STRING;
+			getline(statelst,STRING); // Saves the line in STRING.
+			int S = atoi(STRING.c_str());
+			state_list.push_back(S);
+		 }
+	    statelst.close();
+	  }
+	//get conf of Db, Angle2ball, Angle2goal TODO
+	double conf_Db,conf_A2b,conf_A2g;
+	conf_Db = mpAgent->World().Ball().GetPosConf();
+	conf_A2b = conf_Db;
+	conf_A2g = mpAgent->Self().GetPosConf();
+	//get player's estimate of Db, Angle2ball, Angle2goal TODO
+	double Db,A2b,A2g;
+
+	Db = mpAgent->World().Ball().GetPos().Dist(mpAgent->Self().GetPos());
+	A2b = abs((mpAgent->World().Ball().GetPos() - mpAgent->Self().GetPos()).Dir() - mpAgent->Self().GetBodyDir());
+	A2g = abs((observer.Marker(MarkerType(1)).GlobalPosition() - mpAgent->Self().GetPos()).Dir() - mpAgent->Self().GetBodyDir());
+
+	int Db_mean_state,A2b_mean_state,A2g_mean_state;
+	Db_mean_state=getDistance(Db);
+	A2b_mean_state=getDirectionBall(A2b);
+	A2g_mean_state=getDirectionGoal(A2g);
+	//form three independent normal distribution with player's estimates as mean
+	//and mapping conf=0 as norm (std=1) and conf=1 as norm (std=0.0001) (linear mapping)
+	double std_Db,std_A2b,std_A2g;
+	std_Db=(0.0001-1)*conf_Db+1;
+	std_A2b=(0.0001-1)*conf_A2b+1;
+	std_A2g=(0.0001-1)*conf_A2g+1;
+
+	int vsize=state_list.size();
+	vector<double> belief;
+	//get the belief of every state in the state list
+	for (int i=0;i<vsize;i++)
+	{
+		int state_Db, state_A2b, state_A2g;
+		int state=state_list[i];
+		//decompose each state into 3 component
+		state_A2g=state%6;
+		state_A2b=((state-state_A2g)/6)%6;
+		state_Db=(state-state_A2g-state_A2b*6)/36;
+		//get belief of each elementary state
+		double belief_Db,belief_A2b,belief_A2g,state_belief;
+		belief_Db=normaldist(Db_mean_state,std_Db,state_Db);
+		belief_A2b=normaldist(A2b_mean_state,std_A2b,state_A2b);
+		belief_A2g=normaldist(A2g_mean_state,std_A2g,state_A2g);
+		//total belief of state_list[i]
+		state_belief=belief_Db*belief_A2b*belief_A2g;//assume independence
+		belief.push_back(state_belief);
+	}
+
+	//read alpha vector file
+	ifstream file("alphaVector.txt");
+		int dim;
+		if (file.is_open())
+		{
+			string dimstr;
+			getline(file,dimstr);
+			dim=atoi(dimstr.c_str());
+			//cout<<dim<<endl;
+		}
+		string line;
+		list<alpha_vector> alpha_vector_list;
+	    alpha_vector avt;
+		while (getline(file,line))
+		{
+			avt.action=line[0]-'0';
+			int len=line.length();
+			string value;
+			for (int i=2;i<len;i++)
+			{
+				if ((isspace(line[i]))| (i==(len-1)))
+				{
+					avt.values.push_back(atof(value.c_str()));
+					value="";
+				}
+				else
+				{
+					value+=line[i];
+				}
+			}
+			alpha_vector_list.push_back(avt);
+			avt=(struct alpha_vector){0};
+		}
+		//dot product of belief and alpha vector to get the optimal action
+		alpha_vector avv,optimal_avv;
+		int size=alpha_vector_list.size();
+		double max=-1;
+		for (int i=0;i<size;i++)
+			{
+				avv=alpha_vector_list.front();
+				alpha_vector_list.pop_front();
+				double sum=0;
+				int avv_size=avv.values.size();
+				if (avv_size!=vsize)
+				{
+					cout<<"Dimension of belief and alpha vector does not match!"<<endl;
+					return -1;
+				}
+				else
+				{
+					for (int ii=0;ii<avv_size;i++)
+						sum+=avv.values[ii]*belief[ii];
+					if (sum>=max)
+					{
+						max=sum;
+						optimal_avv=avv;
+					}
+				}
+			}
+
+	return optimal_avv.action;
+}
+
+
+std::string VisualSystem::MyDecision(Observer &observer)
 {
 	//AngleDeg selfPosAngle = mpAgent->GetSelf().GetPos().Dir();
 	AngleDeg selfAngle = mpAgent->GetSelf().GetNeckDir();
 	std::cout << "Self angle value : " << selfAngle << std::endl;
 	AngleDeg target;
-	int i = 2; //std::rand() % 9 ;
+
+
+	int i;
+	//i = std::rand() % 9 ; //2
+	//i = OptimalAction(observer);
+	i=OptimalLSPIAction(observer);
+
+
 	if (i == 2) //look at ball
 	{
 		target = (mpAgent->World().Ball().GetPos() - mpAgent->GetSelf().GetPos()).Dir();
@@ -135,10 +389,26 @@ void VisualSystem::MyDecision(Observer &observer)
 	}
 	else
 	{*/
+
+		AngleDeg finalValue = target  - selfAngle - mPreBodyDir;
+		std::cout << "Turning neck by : " << finalValue << std::endl;
 		std::ostringstream ss;
 		ss << i;
-		mpAgent->Say(ss.str());
-		mpAgent->TurnNeck(target  - selfAngle - mPreBodyDir);
+		ss << " " << finalValue; // neck turn angle
+		/*
+		ss << " " << mpAgent->GetSelf().GetPosDelay();
+		ss << " " << mpAgent->World().Ball().GetPosDelay();
+		ss << " " << mpAgent->GetSelf().GetPos().X();
+		ss << " " << mpAgent->GetSelf().GetPos().Y();
+		ss << " " << mpAgent->GetSelf().GetPosConf();
+		ss << " " << mpAgent->GetSelf().GetBodyDir();
+		ss << " " << mpAgent->GetSelf().GetBodyDirConf();
+		ss << " " << mpAgent->World().Ball().GetPos().X();
+		ss << " " << mpAgent->World().Ball().GetPos().Y();
+		ss << " " << mpAgent->World().Ball().GetPosConf();
+		mpAgent->Say(ss.str());*/
+		mpAgent->TurnNeck(finalValue);
+		return ss.str();
 	//}
 	//selfAngle = mpAgent->GetSelf().GetNeckGlobalDir();
 
@@ -1089,7 +1359,7 @@ void VisualSystem::DoDecision()
 	EvaluateVisualRequest(); //评价
 
 	if (!ForceSearchBall()) {
-		DealVisualRequest(); //处理请求
+		DealVisualRequest(); //处理请求SetForceSeeBall
 		DoVisualExecute(); //视觉执行
 	}
 }

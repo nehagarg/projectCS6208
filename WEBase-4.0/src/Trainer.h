@@ -146,8 +146,8 @@ private:
 	void Parse(const std::string & section, const std::vector<std::string> & content);
 	void ParseCondition(const std::string & content);
 	void Record();
-	void RecordLSPI();
-	int Record_sarsop(Unum,int,int);
+	void RecordLSPI(int count, int action, double playerPosValues[], double turnNeckAngle);
+	int Record_sarsop(Unum,int,int, int, int, double[]);
 	void ReadConverseConf(const std::string & str); //场景对调，这个可以试试看能不能找到一些新方法
 	void AddCondition(Trainer::Condition * superCondition, const char * name, const char * buffer);
 	void InitializeStadium();
@@ -186,6 +186,9 @@ private:
 	int myState_state;
 	int myState_preState;
 	int myAction_preState;
+	int mPlayerNum;
+	double initBallPosX;
+	double initBallPosY;
 	int mTm2Opp[12]; //解决对手和我们相同号码不同角色的问题
 	int mOpp2Tm[12]; //和上面那个刚好是倒过来的，一个用于自己变对手，一个用于
 	PlayMode mTrainPM;

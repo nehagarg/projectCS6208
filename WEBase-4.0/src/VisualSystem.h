@@ -43,6 +43,7 @@
 #include "PlayerState.h"
 #include "ServerParam.h"
 #include <set>
+using namespace std;
 
 class MobileState;
 class PlayerState;
@@ -172,7 +173,7 @@ public:
 
 	void ResetVisualRequest();
 	void Decision();
-	void MyDecision(Observer & observer);
+	std::string MyDecision(Observer & observer);
 
 	void RaiseBall(Agent & agent, double eva = 0.0) { if (mpAgent == & agent) { RaiseBall(eva); } }
 	void RaisePlayer(Agent & agent, Unum num, double eva = 0.0) { if (mpAgent == & agent) { RaisePlayer(num, eva); } }
@@ -184,7 +185,12 @@ public:
 	void ForbidDecision(const Agent & agent) { if (mpAgent == & agent) { mForbidden = true;} }
 	void ChangeViewWidth(const Agent & agent, ViewWidth view_width) { if (mpAgent == & agent) { ChangeViewWidth(view_width); } }
 	void SetCanTurn(const Agent & agent, bool can_turn) { if (mpAgent == & agent) { SetCanTurn(can_turn); } }
-
+	int OptimalAction(Observer & observer);
+	int OptimalLSPIAction(Observer & observer);
+	double normaldist(double,double,double);
+	int getDistance(double dis);
+	int getDirectionBall(double dir);
+	int getDirectionGoal(double dir);
 public:
 	void Initial(Agent * agent);
 

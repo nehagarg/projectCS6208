@@ -40,6 +40,7 @@
 #include "Agent.h"
 #include "Strategy.h"
 #include "TimeTest.h"
+#include <sstream>
 
 bool DecisionTree::Decision(Agent & agent)
 {
@@ -51,17 +52,40 @@ bool DecisionTree::Decision(Agent & agent)
 		agent.SetActiveBehaviorInAct(beh.GetType());
 		Assert(&beh.GetAgent() == &agent);
 		std::cout<< "Executing behaviour " << beh.GetType() << "and " << beh.mDetailType <<  std::endl;
+		//int i;
+		//std::cin >> i ;
 		if(beh.GetType() == BT_Shoot)
 		{
-			agent.Say("9");
-			//agent.Self().SetIsAlive(false);
 			agent.setEpisodeEnded(true);
+			/*if(beh.Execute())
+			{
+			std::ostringstream ss;
+			ss << "9";
+			ss << " " << agent.GetSelf().GetPos().X();
+			ss << " " << agent.GetSelf().GetPos().Y();
+			ss << " " << agent.GetSelf().GetPosConf();
+			ss << " " << agent.GetSelf().GetBodyDir();
+			ss << " " << agent.GetSelf().GetBodyDirConf();
+			ss << " " << agent.World().Ball().GetPos().X();
+			ss << " " << agent.World().Ball().GetPos().Y();
+			ss << " " << agent.World().Ball().GetPosConf();
+			ss << " 0" ; // neck turn angle
+			std::cout << "Sending episode end message to trainer \n";
+			agent.Say(ss.str());
+			return true;
+			}
+			else
+			{
+				return false;
+			}*/
+			//agent.Self().SetIsAlive(false);
+
 		}
 		return beh.Execute();
 	}
 	else
 	{
-		if(agent.World().GetPlayMode() == PM_Play_On)
+		if(agent.World().GetPlayMode() == PM_Play_On && !agent.isEpisodeEnded())
 		{
 			if (agent.GetSelf().IsKickable())
 			{
@@ -71,10 +95,14 @@ bool DecisionTree::Decision(Agent & agent)
 			{
 				std::cout << "cannot kick" << std::endl;
 			}
+
 			return Dasher::instance().GetBall(agent);
+			//return Dasher::instance().GoToPoint(agent, )
 		}
 	}
-	return false;
+
+	return agent.isEpisodeEnded();
+	//return false;
 }
 ActiveBehavior DecisionTree::MySearch(Agent & agent, int step)
 {

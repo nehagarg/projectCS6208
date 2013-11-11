@@ -531,7 +531,7 @@ void CommunicateSystem::RecvFreeForm(DWORD64 bits)
 		 }
 		 else if (type == PLAYER_ACTION){
 			 int actionNumber = ExtractDataFromBits(bits, ACTION, bit_left);
-			 mpObserver->HearAction(actionNumber);
+			 //mpObserver->HearAction(actionNumber);
 			 Logger::instance().GetTextLogger("freeform") << mpObserver->CurrentTime() << "action id " << actionNumber << endl;
 		 }
 		 else {

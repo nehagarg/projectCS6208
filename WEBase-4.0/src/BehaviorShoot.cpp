@@ -83,6 +83,7 @@ bool BehaviorShootExecuter::Execute(const ActiveBehavior & shoot)
 	if (shoot.mDetailType == BDT_Shoot_Tackle)
 		return Tackler::instance().TackleToDir(mAgent,shoot.mAngle);
 	else
+		std::cout << "Shooting at : " << shoot.mTarget.X() << " " << shoot.mTarget.Y() << std::endl;
 		return Kicker::instance().KickBall(mAgent, shoot.mTarget, ServerParam::instance().ballSpeedMax(), KM_Quick, 0, true);
 }
 
@@ -116,9 +117,9 @@ void BehaviorShootPlanner::Plan(list<ActiveBehavior> & behavior_list)
 	{
 		return;
 	}
-	//std::cout << "Planning shoot";
+	std::cout << "Planning shoot";
 	if (mSelfState.GetPos().X() > ServerParam::instance().pitchRectanglar().Right() - PlayerParam::instance().shootMaxDistance()) {
-		//std::cout << "inside if" << std::endl;
+		std::cout << "inside if" << std::endl;
 		AngleDeg left= (ServerParam::instance().oppLeftGoalPost()- mSelfState.GetPos()).Dir()  ;
 		AngleDeg right = (ServerParam::instance().oppRightGoalPost()- mSelfState.GetPos()).Dir();
 		Vector target ;

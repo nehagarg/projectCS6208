@@ -469,6 +469,9 @@ private:
 	AngleDeg    mHearDir;	//声源方向
 	Unum        mHearUnum;		//说话的队员号码
 	int mHearActionType;
+	int mHearPlayerPosDelay;
+	int mHearBallPosDelay;
+	double mHearPosValues[11];
 	//下面的量记录听觉信息解析后的信息内容
 	ObserverRecord<Vector> mBallPos;
 	ObserverRecord<Vector> mBallVel;
@@ -525,8 +528,25 @@ public:
 		return mHearActionType;
 	}
 
-	void SetActionType(int hearActionType) {
+	double GetPosValues(int i) const {
+		return mHearPosValues[i];
+	}
+
+	int GetPlayerPosDelay() const {
+		return mHearPlayerPosDelay;
+	}
+
+	int GetBallPosDelay() const {
+		return mHearBallPosDelay;
+	}
+
+	void SetActionType(int hearActionType, double posValues[], int playerPosDelay, int ballPosDelay) {
 		mHearActionType = hearActionType;
+		for(int i=0;i< 11; i++){
+		mHearPosValues[i] = posValues[i];
+		}
+		mHearPlayerPosDelay = playerPosDelay;
+		mHearBallPosDelay = ballPosDelay;
 		mHearInfoType |= HearInfo_Action;
 	}
 };
@@ -630,7 +650,7 @@ public:
 
 	void HearBall(const Vector & pos, const Vector & vel);
 	void HearBall(const Vector & pos);
-	void HearAction(int actionType);
+	void HearAction(int actionType, double posValues[], int playerPosDelay, int ballPosDelay);
 	void HearTeammate(Unum num, const Vector & pos);
 	void HearOpponent(Unum num, const Vector & pos);
     void HearOpponentType(const Unum & unum, const int & type) { mAudioObserver.SetOpponentType(unum, type); }

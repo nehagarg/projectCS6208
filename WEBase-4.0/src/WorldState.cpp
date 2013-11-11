@@ -374,6 +374,8 @@ void WorldStateUpdater::UpdateWorldState()
 		if (mpWorldState->GetOpponentGoalieUnum() > 0) Opponent(mpWorldState->GetOpponentGoalieUnum()).UpdateIsGoalie(true);
 //	int id =	TimeTest::instance().Begin("before");
 		//更新自己的听觉信息
+
+		//std::cout << "Updating from Audio \n";
 		UpdateFromAudio();
 
 		//预测一周期
@@ -467,7 +469,7 @@ void WorldStateUpdater::UpdateFromAudio()
         }
 
     }
-
+   // std::cout<< "Coach ball pos delay : " << mpObserver->Ball_Coach().GetPosDelay() << "\n";
 	if (mpObserver->Ball_Coach().GetPosDelay() == 0)
 	{
 		mpObserver->Ball_Coach().AutoUpdate(1, PlayerParam::instance().ballConfDecay());
@@ -688,7 +690,7 @@ void WorldStateUpdater::UpdateSelfInfo()
 		double neck_globe_angle = 0.0;
 
 
-		/* Commented by Neha as agent does not see line markers
+		/* Commented by Neha as agent does not see line markers*/
 		if (ComputeSelfDir(neck_globe_angle))
 		{
 			//计算公式见USTC_Material 第七章
@@ -703,7 +705,7 @@ void WorldStateUpdater::UpdateSelfInfo()
 				PRINT_ERROR("mSightDelay too big!!" << mSightDelay);
 				SelfState().UpdateBodyDir(neck_globe_angle - SelfState().GetNeckDir() , mSightDelay , mPlayerConf);
 			}
-		}*/
+		}
 
 		if (mSightDelay == 0)
 		{
@@ -717,7 +719,7 @@ void WorldStateUpdater::UpdateSelfInfo()
 		double eps = 0;
 		if (ComputeSelfPos(pos , eps))
 		{
-			std::cout << "Could see a marker\n";
+			//std::cout << "Could see a marker\n";
 			if (eps > SelfState().GetPosEps())
 			{
 				//根据统计值,x,y单个分量差值大于1基本不存在 因此取1
@@ -741,7 +743,7 @@ void WorldStateUpdater::UpdateSelfInfo()
 		}
 		else
 		{
-			std::cout << "Marker not seen\n";
+			//std::cout << "Marker not seen\n";
 		}
 	}
 
@@ -1224,6 +1226,7 @@ void WorldStateUpdater::UpdateBallInfo()
 
 	if (mpObserver->Ball().GetDist().time() == mpObserver->LatestSightTime())
 	{
+		std::cout << "Ball Seen \n";
 		double dist = PlayerParam::instance().ConvertSightDist(mpObserver->Ball().Dist());
 
 		if (mpObserver->GetPlayMode() == PM_Opp_Kick_In
