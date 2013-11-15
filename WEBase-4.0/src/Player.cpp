@@ -126,7 +126,7 @@ void Player::Run() {
 				actionNeckValue = VisualSystem::instance().MyDecision(*mpObserver);
 				//CommunicateSystem::instance().SendTeammateStatus(*mpAgent->World(), mpAgent->GetSelf().GetUnum(), 0);
 			}
-			if (numRuns % 5 == 0){ // Change 0 to 1 for sarsop data gathering
+			if (numRuns % 5 == 1){ // Change 0 to 1 for sarsop data gathering
 				ss.str("");
 				ss << actionNeckValue;
 				ss << " " << mpAgent->GetSelf().GetPosDelay();
@@ -219,6 +219,8 @@ void Player::Run() {
 		lookedAtMarker = false;
 		Vector *b = new Vector(ballPositionXArray[((numEpisodes -1)/5)%2], ballPositionYArray[(numEpisodes -1)%5] );
 		Vector *p = new Vector(selfPositionXArray[((numEpisodes -1)/50)%1], selfPositionYArray[((numEpisodes -1)/10)%5]);
+		//Vector *b = new Vector(25, 0);
+		//Vector *p = new Vector(-10, -20);
 		mpAgent->World().Ball().UpdatePos(*b, 0, 1.0);
 		mpAgent->Self().UpdatePos(*p, 0, 1.0);
 

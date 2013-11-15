@@ -216,7 +216,7 @@ int VisualSystem::OptimalLSPIAction(Observer &observer)
 		{
 				target = (observer.Marker((MarkerType)i).GlobalPosition()- mpAgent->GetSelf().GetPos()).Dir();
 		}
-		double estimatedTurnNeckAngle = abs(target - mpAgent->GetSelf().GetNeckDir() - mPreBodyDir);
+		double estimatedTurnNeckAngle = abs(target - mpAgent->GetSelf().GetNeckDir() - mpAgent->GetSelf().GetBodyDir());
 		QValue[i] = (A2b*weights[discretizedDistance][i][0]) + (A2g*weights[discretizedDistance][i][1]) +
 				(estimatedTurnNeckAngle * weights[discretizedDistance][i][2]) +
 				(mpAgent->Self().GetPosConf() * weights[discretizedDistance][i][3]) +
@@ -289,9 +289,9 @@ int VisualSystem::OptimalAction(Observer &observer)
 	//form three independent normal distribution with player's estimates as mean
 	//and mapping conf=0 as norm (std=1) and conf=1 as norm (std=0.0001) (linear mapping)
 	double std_Db,std_A2b,std_A2g;
-	std_Db=(0.0001-1)*conf_Db+1;
-	std_A2b=(0.0001-1)*conf_A2b+1;
-	std_A2g=(0.0001-1)*conf_A2g+1;
+	std_Db=((0.0001-1)*conf_Db+1)*0.2;
+	std_A2b=((0.0001-1)*conf_A2b+1)*0.2;
+	std_A2g=((0.0001-1)*conf_A2g+1)*0.2;
 
 	int vsize=state_list.size();
 	vector<double> belief;
@@ -389,11 +389,10 @@ std::string VisualSystem::MyDecision(Observer &observer)
 
 
 	int i;
-	//i = std::rand() % 12 ; //2
-	//if(i > 8) i = 2; //Adding some bias for looking at ball as there are 8 markers and only one ball
-	//i = OptimalAction(observer);
-	i=OptimalLSPIAction(observer);
-
+	//i = std::rand() % 9 ; //2
+	i = OptimalAction(observer);
+	//i=OptimalLSPIAction(observer);
+	//i=2;
 
 	if (i == 2) //look at ball
 	{
@@ -416,7 +415,7 @@ std::string VisualSystem::MyDecision(Observer &observer)
 	else
 	{*/
 
-		AngleDeg finalValue = target  - selfAngle - mPreBodyDir;
+		AngleDeg finalValue = target  - selfAngle - mpAgent->GetSelf().GetBodyDir();
 		std::cout << "Turning neck by : " << finalValue << std::endl;
 		std::ostringstream ss;
 		ss << i;

@@ -313,7 +313,8 @@ double Trainer::CalculateRewardFromGoal(Vector pos) {
 	if(initPos->Dist(pos) <=0.01)
 	{
 		std::cout << "Could not kick ball properly \n";
-		return -3;
+		//return -3;
+		return 4; //Not kicking properly is random and very difficult to model, so it is assumed as goal
 	}
 	if (pos.Y() > mpObserver->Marker(Flag_GRT).GlobalPosition().Y()
 			&& pos.Y() < mpObserver->Marker(Flag_GRB).GlobalPosition().Y()
